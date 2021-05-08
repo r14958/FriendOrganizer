@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="10.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Prism.Core" Version="8.0.0.1909" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FriendOrganizer.DataAccess\FriendOrganizer.DataAccess.csproj" />
+    <ProjectReference Include="..\FriendOrganizer.Model\FriendOrganizer.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AppSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+</Project>
