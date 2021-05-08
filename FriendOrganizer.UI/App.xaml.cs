@@ -62,9 +62,10 @@ namespace FriendOrganizer.UI
                     services.AddSingleton(new FriendOrganizerDbContextFactory(configureDbContext));
                     
                     // Register the Data Services
-                    services.AddSingleton<IFriendDataService, FriendDataService>();
-                    services.AddSingleton<IFriendDataServiceAsync, FriendDataServiceAsync>();
-                    services.AddSingleton<IFriendLookupDataServiceAsync, FriendLookupDataServiceAsync>();
+                    services.AddSingleton<IDataServiceAsync<Friend>, DataServiceAsyncBase<Friend>>();
+                    // Constructor for LookupDataServiceAsync<Friend> requires two parameters, so this is how they are provided.
+                    services.AddSingleton<ILookupDataServiceAsync<Friend>>(s => 
+                        new LookupDataServiceAsync<Friend>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Friend.FullName)));
 
                     //Register ViewModels
                     services.AddSingleton<INavigationViewModel, NavigationViewModel>();

@@ -11,11 +11,11 @@ namespace FriendOrganizer.UI.ViewModel
 {
     public class NavigationViewModel : ViewModelBase, INavigationViewModel
     {
-        private readonly IFriendLookupDataServiceAsync friendLookupService;
+        private readonly ILookupDataServiceAsync<Friend> friendLookupService;
         private readonly IEventAggregator eventAggregator;
         private NavigationItemViewModel selectedFriend;
 
-        public NavigationViewModel(IFriendLookupDataServiceAsync friendLookupService,
+        public NavigationViewModel(ILookupDataServiceAsync<Friend> friendLookupService,
             IEventAggregator eventAggregator)
         {
             this.friendLookupService = friendLookupService;
@@ -55,7 +55,7 @@ namespace FriendOrganizer.UI.ViewModel
 
         public async Task LoadAsync()
         {
-            var lookup = await friendLookupService.GetFriendLookupAsync();
+            var lookup = await friendLookupService.GetLookupAsync();
             Friends.Clear();
             foreach (var item in lookup)
             {

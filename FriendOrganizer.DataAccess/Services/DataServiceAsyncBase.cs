@@ -1,4 +1,6 @@
 ﻿using FriendOrganizer.Domain.Models;
+using FriendOrganizer.Domain.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
@@ -8,16 +10,21 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.DataAccess.Services
 {
-    public class NonQueryDataServiceAsync<T> where T : EntityBase
+    public class DataServiceAsyncBase<T> : IDataServiceAsync<T>
+        where T : EntityBase
     {
         private readonly FriendOrganizerDbContextFactory contextFactory;
 
-        public NonQueryDataServiceAsync(FriendOrganizerDbContextFactory contextFactory)
+        public DataServiceAsyncBase(FriendOrganizerDbContextFactory contextFactory)
         {
             this.contextFactory = contextFactory;
         }
 
-        public async Task<T> Create(T entity)
+        protected DataServiceAsyncBase()
+        {
+        }
+
+        public async Task<T> CreateAsync(T entity)
         {
             using FriendOrganizerDbContext context = contextFactory.CreateDbContext();
             EntityEntry<T> entityEntry = await context.Set<T>().AddAsync(entity);
@@ -27,25 +34,35 @@ namespace FriendOrganizer.DataAccess.Services
             return entityEntry.Entity;
         }
 
-        public async Task<T> Update(int id, T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
             using FriendOrganizerDbContext context = contextFactory.CreateDbContext();
-            entity.Id = id;
-
-            context.Set<T>().Update(entity);
+            context.Set<T>().Attach(entity);
+            context.Entry<T>(entity).State = EntityState.Modified;
             await context.SaveChangesAsync();
 
             return entity;
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             using FriendOrganizerDbContext context = contextFactory.CreateDbContext();
             T entity = context.Set<T>().FirstOrDefault((e) => e.Id == id);
             context.Set<T>().Remove(entity);
-            await context.SaveChangesAsync ();
+            await context.SaveChangesAsync();
 
             return true;
+        }
+
+        public Task<IEnumerable<T>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual async Task<T> GetAsync(int id)
+        {
+            using FriendOrganizerDbContext context = contextFactory.CreateDbContext();
+            return await context.Set<T>().AsNoTracking<T>().SingleAsync<T>(e => e.Id == id);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace FriendOrganizer.UI.ViewModel
     /// </summary>
     public class FriendDetailViewModel : ViewModelBase, IFriendDetailViewModel
     {
-        private readonly IFriendDataServiceAsync friendDataService;
+        private readonly IDataServiceAsync<Friend> friendDataService;
         private readonly IEventAggregator eventAggregator;
         private readonly IValidator<Friend> validator;
         private FriendWrapper friend;
@@ -28,7 +28,7 @@ namespace FriendOrganizer.UI.ViewModel
         /// <param name="friendDataService">Data service to provide a <see cref="Friend"/> instance.</param>
         /// <param name="eventAggregator">Prism <see cref="Prism.Events.EventAggregator"/> to pass events between view models.</param>
         /// <param name="validator">FluentValidation <see cref="FluentValidation.IValidator{T}"/> to perform data validation on the <see cref="Friend"/> instance.</param>
-        public FriendDetailViewModel(IFriendDataServiceAsync friendDataService,
+        public FriendDetailViewModel(IDataServiceAsync<Friend> friendDataService,
             IEventAggregator eventAggregator, IValidator<Friend> validator)
         {
             this.friendDataService = friendDataService;
@@ -53,7 +53,7 @@ namespace FriendOrganizer.UI.ViewModel
 
         public async Task LoadAsync(int friendId)
         {
-            Friend friend = await friendDataService.GetByIdAsync(friendId);
+            Friend friend = await friendDataService.GetAsync(friendId);
             Friend = new FriendWrapper(friend, validator);
 
             Friend.PropertyChanged += (s, e) =>
@@ -77,7 +77,7 @@ namespace FriendOrganizer.UI.ViewModel
         private async void OnSaveExecuteAsync()
         {
             // Use the data service to save the friend to the DB.
-            await friendDataService.SaveAsync(Friend.Model);
+            await friendDataService.UpdateAsync(Friend.Model);
             eventAggregator.GetEvent<AfterFriendSavedEvent>()
                 .Publish(
                 new AfterFriendSavedEventsArgs

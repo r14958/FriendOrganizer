@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.Domain.Services
 {
-    public interface IFriendLookupDataServiceAsync
+    public interface ILookupDataServiceAsync<T> where T : EntityBase
     {
-        public Task<IEnumerable<LookupItem>> GetFriendLookupAsync();
+        public Task<IEnumerable<LookupItem<T>>> GetLookupAsync();
     }
 }
