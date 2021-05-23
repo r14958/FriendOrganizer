@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.Domain.Services
 {
-    public interface IDataServiceAsync<T> where T : EntityBase
+    public interface IDataRepository<T> where T : EntityBase
     {
         Task<IEnumerable<T>> GetAllAsync();
 
-        Task<T> GetAsync(int id);
+        Task<T> GetAsync(int? id);
 
         Task<T> CreateAsync(T entity);
 
-        Task<T> UpdateAsync(T entity);
+        Task SaveAsync();
 
-        Task<bool> DeleteAsync(int id);
+        Task DeleteAsync(T entity);
+
+        bool HasChanges();
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FriendOrganizer.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.Domain.Services
 {
-    public interface IDataService<T>
+    public interface IDataService<T> where T : EntityBase
     {
         IEnumerable<T> GetAll();
 

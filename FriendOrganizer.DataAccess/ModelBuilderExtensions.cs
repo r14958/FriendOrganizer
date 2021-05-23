@@ -23,6 +23,16 @@ namespace FriendOrganizer.DataAccess
                new Friend { Id = 3, FirstName = "Andreas", LastName = "Boehler" },
                new Friend { Id = 4, FirstName = "Chrissi", LastName = "Egin" }
                );
+
+            modelBuilder.Entity<ProgrammingLanguage>().HasData(
+                new ProgrammingLanguage { Id = 1, Name = "C#" },
+                new ProgrammingLanguage { Id = 2, Name = "Python" },
+                new ProgrammingLanguage { Id = 3, Name = "Swift" },
+                new ProgrammingLanguage { Id = 4, Name = "Java" },
+                new ProgrammingLanguage { Id = 5, Name = "F#" });
+
+            modelBuilder.Entity<FriendPhoneNumber>().HasData(
+                new FriendPhoneNumber { Id = 1, Number = "+49 12345678", FriendId = 1 });
         }
     }
 }

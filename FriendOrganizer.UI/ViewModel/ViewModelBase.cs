@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
+    
     public class ViewModelBase : INotifyPropertyChanged
     {
+        public virtual void Dispose() { }
+        
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>

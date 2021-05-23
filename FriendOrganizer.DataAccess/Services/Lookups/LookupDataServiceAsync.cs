@@ -7,14 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FriendOrganizer.DataAccess.Services
+namespace FriendOrganizer.DataAccess.Services.Lookups
+
 {
     /// <summary>
     /// Generic data service to return a read-only, lightweight, IEnumerable collection of two properties of an <see cref="EntityBase"/> data model: the item's id
     /// and one other property that must return a string.
     /// </summary>
     /// <typeparam name="T">The type of the (<see cref="EntityBase"/> data model.</typeparam>
-    public class LookupDataServiceAsync<T> : ILookupDataServiceAsync<T> where T : EntityBase
+    public class LookupDataServiceAsync<T> : ILookupDataService<T> where T : EntityBase
     {
         private readonly FriendOrganizerDbContextFactory contextFactory;
         private readonly string propertyName;

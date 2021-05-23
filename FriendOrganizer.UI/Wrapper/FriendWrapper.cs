@@ -13,7 +13,7 @@ namespace FriendOrganizer.UI.Wrapper
     public class FriendWrapper : ModelWrapper<Friend>
     {
         /// <summary>
-        /// 
+        /// Wraps the Model <see cref="Friend"/> and adds data validation.
         /// </summary>
         /// <param name="model">The Friend instance to be wrapped.</param>
         /// <param name="validator">Optional FluentValidation <see cref="IValidator{T}"/> where T is <see cref="Friend"/>.</param>
@@ -26,22 +26,29 @@ namespace FriendOrganizer.UI.Wrapper
         public string FirstName
         {
             get { return GetValue<string>(); }
-            set { SetValue<string>(value); }
+            set { SetValue(value); }
         }
 
         
         public string LastName
         {
             get { return GetValue<string>(); }
-            set { SetValue<string>(value); }
+            set { SetValue(value); }
         }
 
         public string Email
         {
             get { return GetValue<string>(); }
-            set { SetValue<string>(value); }
+            set { SetValue(value); }
         }
 
         public string FullName => GetValue<string>();
+
+        // This is an optional field, so the int must be nullable.
+        public int? FavoriteLanguageId
+        {
+            get { return GetValue<int?>(); }
+            set { SetValue(value); }
+        }
     }
 }

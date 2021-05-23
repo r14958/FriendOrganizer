@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace FriendOrganizer.Domain.Models
@@ -7,6 +9,11 @@ namespace FriendOrganizer.Domain.Models
     {
         private string firstName;
         private string lastName;
+
+        public Friend()
+        {
+            PhoneNumbers = new Collection<FriendPhoneNumber>();
+        }
 
         public string FirstName
         {
@@ -18,6 +25,7 @@ namespace FriendOrganizer.Domain.Models
                 OnPropertyChanged(nameof(FullName));
             }
         }
+
         public string LastName
         {
             get => lastName; 
@@ -32,6 +40,10 @@ namespace FriendOrganizer.Domain.Models
 
         public string FullName => FirstName + ' ' + LastName;
 
+        public int? FavoriteLanguageId { get; set; }
 
+        public ProgrammingLanguage FavoriteLanguage { get; set; }
+
+        public ICollection<FriendPhoneNumber> PhoneNumbers { get; set; }
     }
 }

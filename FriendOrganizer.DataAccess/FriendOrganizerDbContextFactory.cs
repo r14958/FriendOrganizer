@@ -10,7 +10,6 @@ namespace FriendOrganizer.DataAccess
 {
     public class FriendOrganizerDbContextFactory
     {
-        //private readonly string connectionString;
         private readonly Action<DbContextOptionsBuilder> configureDbContext;
 
         public FriendOrganizerDbContextFactory(Action<DbContextOptionsBuilder> configureDbContext)
