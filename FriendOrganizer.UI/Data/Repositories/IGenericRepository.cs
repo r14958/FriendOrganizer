@@ -5,19 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FriendOrganizer.Domain.Services
+namespace FriendOrganizer.UI.Data.Repositories
 {
-    public interface IDataRepository<T> where T : EntityBase
+    public interface IGenericRepository<T> where T : EntityBase
     {
         Task<IEnumerable<T>> GetAllAsync();
 
-        Task<T> GetAsync(int? id);
+        Task<T> GetByIdAsync(int id);
 
-        Task<T> CreateAsync(T entity);
+        Task<T> AddAsync(T entity);
 
         Task SaveAsync();
 
-        Task DeleteAsync(T entity);
+        Task RemoveAsync(T entity);
 
         bool HasChanges();
     }

@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public delegate TViewModel CreateViewModel<TViewModel>() where TViewModel : ViewModelBase;
-
-    class CreateViewModelDelegate
+    public interface IMeetingDetailViewModel : IDetailViewModel
     {
     }
 }

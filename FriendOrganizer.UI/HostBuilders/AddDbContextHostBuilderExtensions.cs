@@ -39,6 +39,9 @@ namespace FriendOrganizer.UI.HostBuilders
                 // Same for the LookupDataServiceAsync<ProgrammingLanguage>
                 services.AddSingleton<ILookupDataService<ProgrammingLanguage>>(s =>
                     new LookupDataServiceAsync<ProgrammingLanguage>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(ProgrammingLanguage.Name)));
+                // Same for the LookupDataServiceAsync<ProgrammingLanguage>
+                services.AddSingleton<ILookupDataService<Meeting>>(s =>
+                    new LookupDataServiceAsync<Meeting>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Meeting.Title)));
             });
 
             return host;

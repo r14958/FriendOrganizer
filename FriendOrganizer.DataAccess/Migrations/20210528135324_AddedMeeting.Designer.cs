@@ -3,14 +3,16 @@ using System;
 using FriendOrganizer.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FriendOrganizer.DataAccess.Migrations
 {
     [DbContext(typeof(FriendOrganizerDbContext))]
-    partial class FriendOrganizerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210528135324_AddedMeeting")]
+    partial class AddedMeeting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,7 +113,7 @@ namespace FriendOrganizer.DataAccess.Migrations
                         {
                             Id = 1,
                             FriendId = 1,
-                            Number = "+49-5361-9-0"
+                            Number = "+49 12345678"
                         });
                 });
 
@@ -135,22 +137,6 @@ namespace FriendOrganizer.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Meeting");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 2,
-                            DateFrom = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            DateTo = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            Title = "Watching Football"
-                        },
-                        new
-                        {
-                            Id = 1,
-                            DateFrom = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            DateTo = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            Title = "Watching Football"
-                        });
                 });
 
             modelBuilder.Entity("FriendOrganizer.Domain.Models.ProgrammingLanguage", b =>

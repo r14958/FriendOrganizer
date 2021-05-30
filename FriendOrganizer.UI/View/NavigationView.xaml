@@ -5,56 +5,69 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FriendOrganizer.UI.View"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Auto">
-            
-            <!--ItemsControl present a collection items (without selecting anything like would a ListView).-->
-            <!--It is bound to a collection of Friends, which is actually a collection of NavigationItemViewModels-->
-            <ItemsControl Grid.Column="0" 
-                          ItemsSource="{Binding Friends}">
-                <ItemsControl.ItemContainerStyle>
-                    <Style TargetType="ContentPresenter">
-                        <Setter Property="HorizontalAlignment" Value="Left"/>
-                        <Setter Property="Margin" Value="3,1,3,1"/>
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-                <!--So each item being displayed is bound to an individual NavigationItemViewModel-->
-                <!--The ItemTemplate lets one completely restyle a WPF control (in this case each Item in the ItemsControl.-->
-                <ItemsControl.ItemTemplate>
-                    <!--The DataTemplate describes the visual structure of a content control-->
-                    <DataTemplate>
-                        <!--The button will give us the basic functionality we are looking for (shows content and is clickable).-->
-                        <Button Content="{Binding DisplayMember}"
-                                Command="{Binding OpenDetailFriendViewCommand}">
-                            <!--But we don't want a standard looking button, we want to full-customize it.-->
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Grid>
-                                        <!--A ContentPresenter displays the content of a ContentControl (like a button).-->
-                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+             d:DesignHeight="450" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style x:Key="NaviItemContainerStyle" TargetType="ContentPresenter">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="3,1,3,1"/>
+        </Style>
+
+        <!--So each item being displayed is bound to an individual NavigationItemViewModel-->
+        <!--The ItemTemplate lets one completely restyle a WPF control (in this case each Item in the ItemsControl.-->
+        <DataTemplate x:Key="NaviItemDataTemplate">
+            <!--The button will give us the basic functionality we are looking for (shows content and is clickable).-->
+            <Button Content="{Binding DisplayMember}"
+                                Command="{Binding OpenDetailViewCommand}">
+                <!--But we don't want a standard looking button, we want to full-customize it.-->
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <!--A ContentPresenter displays the content of a ContentControl (like a button).-->
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                    </Grid>
-                                    <ControlTemplate.Triggers>
-                                        <!--When the control is moused over, change the cursor and make the button text bold.-->
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Cursor" Value="Hand"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </Trigger>
-                                        <!--When the button is clicked, return the font to normal.  The button command will fire when-->
-                                        <!--the button is released.-->
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter Property="FontWeight" Value="Normal" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!--When the control is moused over, change the cursor and make the button text bold.-->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <!--When the button is clicked, return the font to normal.  The button command will fire when-->
+                            <!--the button is released.-->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="FontWeight" Value="Normal" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </DataTemplate>
+
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="300"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <GroupBox Header="Friends" Grid.Row="0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <!--ItemsControl present a collection items (without selecting anything like would a ListView).-->
+                <!--It is bound to a collection of Friends, which is actually a collection of NavigationItemViewModels-->
+                <ItemsControl ItemsSource="{Binding Friends}"
+                              ItemContainerStyle="{StaticResource NaviItemContainerStyle}"
+                              ItemTemplate="{StaticResource NaviItemDataTemplate}"/>
+            </ScrollViewer>
+        </GroupBox>
+
+        <GroupBox Header="Meetings" Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Meetings}"
+                          ItemContainerStyle="{StaticResource NaviItemContainerStyle}"
+                          ItemTemplate="{StaticResource NaviItemDataTemplate}"/>
+            </ScrollViewer>
+        </GroupBox>
     </Grid>
 </UserControl>

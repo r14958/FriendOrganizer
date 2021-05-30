@@ -15,9 +15,13 @@ namespace FriendOrganizer.DataAccess
 
         public DbSet<FriendPhoneNumber> FriendPhoneNumbers { get; set; }
 
+        public DbSet<Meeting> Meetings { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("DataSource=FriendsOrganizer.db");
+            optionsBuilder
+                .EnableSensitiveDataLogging()
+                .UseSqlite("DataSource=FriendsOrganizer.db");
 
             base.OnConfiguring(optionsBuilder);
         }

@@ -15,15 +15,12 @@ namespace FriendOrganizer.UI.HostBuilders
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<NavigationViewModel>();
                 services.AddTransient<FriendDetailViewModel>();
-                services.AddTransient<FriendPhoneNumberListViewModel>();
-
+                services.AddTransient<MeetingDetailViewModel>();
 
                 services.AddTransient<INavigationViewModel, NavigationViewModel>();
-                services.AddTransient<IViewModel<Friend>, FriendDetailViewModel>();
-                services.AddTransient<IViewModel<FriendPhoneNumber>, FriendPhoneNumberListViewModel>();
                 
                 services.AddSingleton<CreateViewModel<FriendDetailViewModel>>(services => () => services.GetRequiredService<FriendDetailViewModel>());
-                services.AddSingleton<CreateViewModel<FriendPhoneNumberListViewModel>>(services => () => services.GetRequiredService<FriendPhoneNumberListViewModel>());
+                services.AddSingleton<CreateViewModel<MeetingDetailViewModel>>(services => () => services.GetRequiredService<MeetingDetailViewModel>());
                 services.AddSingleton<CreateViewModel<NavigationViewModel>>(services => () => services.GetRequiredService<NavigationViewModel>());
                 
                 services.AddSingleton<IFriendOrganizerViewModelFactory, FriendOrganizerViewModelFactory>();

@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using static FriendOrganizer.UI.Utilities;
 
 namespace FriendOrganizer.UI.ViewModel
 {
@@ -16,7 +17,7 @@ namespace FriendOrganizer.UI.ViewModel
         private readonly IEventAggregator eventAggregator;
         private readonly IMessageDialogService messageDialogService;
         private readonly IFriendOrganizerViewModelFactory viewModelFactory;
-        private IViewModel<Friend> friendDetailViewModel;
+        private IDetailViewModel detailViewModel;
 
         public MainViewModel(
             IFriendOrganizerViewModelFactory viewModelFactory, 
@@ -28,14 +29,16 @@ namespace FriendOrganizer.UI.ViewModel
             this.messageDialogService = messageDialogService;
 
             // When a new FriendDetailView is opened, call the appropriate method to populate it.
-            this.eventAggregator.GetEvent<OpenFriendDetailViewEvent>()
-                .Subscribe(OnOpenFriendDetailView);
-            this.eventAggregator.GetEvent<AfterFriendDeletedEvent>()
-                .Subscribe(AfterFriendDeleted);
+            this.eventAggregator.GetEvent<OpenDetailViewEvent>()
+                .Subscribe(OnOpenDetailView);
+            this.eventAggregator.GetEvent<AfterDetailDeletedEvent>()
+                .Subscribe(AfterDetailDeleted);
 
             NavigationViewModel = (NavigationViewModel)viewModelFactory.CreateViewModel(ViewType.Navigation);
 
-            CreateNewFriendCommand = new DelegateCommand(OnCreateNewFriend);
+            // Note that we are using a DelegateCommand<T>, where T is the type of the command parameter.
+            // In this case, our parameter is of type Type, and is relaying the type of ViewModel to load.
+            CreateNewDetailCommand = new DelegateCommand<Type>(OnCreateNewDetailExecute);
 
         }
 
@@ -48,15 +51,15 @@ namespace FriendOrganizer.UI.ViewModel
 
 
         /// <summary>
-        /// Gets the <see cref="ViewModel.FriendDetailViewModel"/> property for the <see cref="MainViewModel"/> class.
+        /// Gets the <see cref="ViewModel.IDetailViewModel"/> property for the <see cref="MainViewModel"/> class.
         /// </summary>
-        /// <remarks>Private setter, since this is only set during the <see cref="OnOpenFriendDetailViewAsync(int)"/> event.</remarks>
-        public IViewModel<Friend> FriendDetailViewModel
+        /// <remarks>Private setter, since this is only set during the <see cref="OnOpenDetailView(OpenDetailViewEventArgs)"/> event.</remarks>
+        public IDetailViewModel DetailViewModel
         {
-            get { return friendDetailViewModel; }
+            get { return detailViewModel; }
             private set 
             { 
-                friendDetailViewModel = value;
+                detailViewModel = value;
                 OnPropertyChanged();
 
             }
@@ -72,18 +75,18 @@ namespace FriendOrganizer.UI.ViewModel
             await NavigationViewModel.LoadAsync();
         }
 
-        public ICommand CreateNewFriendCommand { get; }
+        public ICommand CreateNewDetailCommand { get; }
 
         /// <summary>
-        /// Creates a new <see cref="FriendDetailViewModel"/> and populates it. 
+        /// Creates a new <see cref="DetailViewModel"/> and populates it. 
         /// </summary>
-        /// <param name="friendId">The ID of the target friend, or null to create a new Friend.</param>
-        /// <remarks>Will check for changes to the existing <see cref="FriendDetailViewModel"/> and verify with the user before 
+        /// <param name="args"></param>
+        /// <remarks>Will check for changes to the existing <see cref="DetailViewModel"/> and verify with the user before 
         /// navigating away without saving.</remarks>
-        private async void OnOpenFriendDetailView(int? friendId)
+        private async void OnOpenDetailView(OpenDetailViewEventArgs args)
         {
             // If we already have a view model and it has changes...
-            if (FriendDetailViewModel != null && FriendDetailViewModel.HasChanges)
+            if (DetailViewModel != null && DetailViewModel.HasChanges)
             {
                 // Verify that the user really wants to navigate away 
                 MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
@@ -94,19 +97,28 @@ namespace FriendOrganizer.UI.ViewModel
                 if (result == MessageDialogResult.Cancel) return;
             }
 
-            // Otherwise create a new FriendDetailViewModel and load the data of the selected Friend.
-            FriendDetailViewModel = (IViewModel<Friend>)viewModelFactory.CreateViewModel(ViewType.FriendDetail);
-            await FriendDetailViewModel.LoadAsync(friendId);
+            switch (args.ViewModelName)
+            {
+                case nameof(FriendDetailViewModel):
+                    DetailViewModel = (IDetailViewModel)viewModelFactory.CreateViewModel(ViewType.FriendDetail);
+                    break;
+                case nameof(MeetingDetailViewModel):
+                    DetailViewModel = (IDetailViewModel)viewModelFactory.CreateViewModel(ViewType.MeetingDetail);
+                    break;
+                default:
+                    throw new ArgumentException($"ViewModel {args.ViewModelName} is unknown and cannot be opened.");
+            }
+            await DetailViewModel.LoadAsync(args.Id);
         }
 
-        private void OnCreateNewFriend()
+        private void OnCreateNewDetailExecute(Type viewModelType)
         {
-            OnOpenFriendDetailView(null);
+            OnOpenDetailView(new OpenDetailViewEventArgs { ViewModelName = viewModelType.Name });
         }
 
-        private void AfterFriendDeleted(int friendId)
+        private void AfterDetailDeleted(AfterDetailDeletedEventArgs args)
         {
-            FriendDetailViewModel = null;
+            DetailViewModel = null;
         }
 
     }

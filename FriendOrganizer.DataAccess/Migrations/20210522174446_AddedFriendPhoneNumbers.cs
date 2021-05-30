@@ -29,7 +29,7 @@ namespace FriendOrganizer.DataAccess.Migrations
             migrationBuilder.InsertData(
                 table: "FriendPhoneNumber",
                 columns: new[] { "Id", "FriendId", "Number" },
-                values: new object[] { 1, 1, "+49 12345678" });
+                values: new object[] { 1, 1, "+49-5361-9-0" });
 
             migrationBuilder.InsertData(
                 table: "ProgrammingLanguage",

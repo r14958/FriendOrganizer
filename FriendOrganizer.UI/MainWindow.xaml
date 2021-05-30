@@ -15,6 +15,9 @@
         <DataTemplate DataType="{x:Type viewModel:FriendDetailViewModel}">
             <view:FriendDetailView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:MeetingDetailViewModel}">
+            <view:MeetingDetailView/>
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -29,18 +32,23 @@
         <!--Menu Row-->
         <Menu Grid.Row="0" Grid.ColumnSpan="2" FontSize="20">
             <MenuItem Header="Create">
-                <MenuItem Header="New Friend" Command="{Binding CreateNewFriendCommand}"/>
+                <!--To create a new Friend type, pass the type of the FriendDetailViewModel-->
+                <!--Note that we already defined the viewModel namespace-->
+                <MenuItem Header="New Friend" Command="{Binding CreateNewDetailCommand}"
+                          CommandParameter="{x:Type viewModel:FriendDetailViewModel}"/>
+                <MenuItem Header="New Meeting" Command="{Binding CreateNewDetailCommand}"
+                          CommandParameter="{x:Type viewModel:MeetingDetailViewModel}"/>
             </MenuItem>
         </Menu>
         
-        <!--Navigation and FriendDetail Views Row-->
+        <!--Navigation and Detail Views Row-->
         <view:NavigationView Grid.Row="1"
                              Grid.Column="0"
                              DataContext="{Binding NavigationViewModel}"/>
-        <!--This content control will be displayed as a FriendDetailView as defined in the Windows.Resources-->
+        <!--This content control will be displayed as a DetailView as defined in the Windows.Resources-->
         <ContentControl Grid.Row="1" 
                                Grid.Column="1" 
-                               Content="{Binding FriendDetailViewModel}">
+                               Content="{Binding DetailViewModel}">
         </ContentControl>
     </Grid>
 </Window>

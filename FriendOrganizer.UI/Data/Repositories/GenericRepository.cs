@@ -1,4 +1,5 @@
-﻿using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.DataAccess;
+using FriendOrganizer.Domain.Models;
 using FriendOrganizer.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -6,19 +7,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FriendOrganizer.DataAccess.Services.Repositories
+namespace FriendOrganizer.UI.Data.Repositories
 {
-    public class DataRepositoryBase<T> : IDataRepository<T>
+    public class GenericRepository<T> : IGenericRepository<T>
         where T : EntityBase
     {
         protected readonly FriendOrganizerDbContext context;
 
-        public DataRepositoryBase(FriendOrganizerDbContextFactory contextFactory)
+        public GenericRepository(FriendOrganizerDbContextFactory contextFactory)
         {
             context = contextFactory.CreateDbContext();
         }
 
-        public virtual async Task<T> CreateAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
             EntityEntry<T> entityEntry = await context.Set<T>().AddAsync(entity);
 
@@ -30,7 +31,7 @@ namespace FriendOrganizer.DataAccess.Services.Repositories
             await context.SaveChangesAsync();
         }
 
-        public virtual async Task DeleteAsync(T entity)
+        public virtual async Task RemoveAsync(T entity)
         {
             context.Set<T>().Remove(entity);
             await context.SaveChangesAsync();
@@ -41,7 +42,7 @@ namespace FriendOrganizer.DataAccess.Services.Repositories
             return await context.Set<T>().ToListAsync<T>();
         }
 
-        public virtual async Task<T> GetAsync(int? id)
+        public virtual async Task<T> GetByIdAsync(int id)
         {
             return await context.Set<T>().SingleAsync(e => e.Id == id);
         }

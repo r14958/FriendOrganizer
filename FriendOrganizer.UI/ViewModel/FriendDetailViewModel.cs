@@ -1,14 +1,15 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
 using FriendOrganizer.Domain.Services;
+using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
-using FriendOrganizer.UI.ViewModel.Factory;
+using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
-using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -17,83 +18,43 @@ namespace FriendOrganizer.UI.ViewModel
     /// <summary>
     /// View model for the FriendDetail view.
     /// </summary>
-    public class FriendDetailViewModel : ViewModelBase, IViewModel<Friend>
+    public class FriendDetailViewModel : DetailViewModelBase
     {
-        private readonly IDataRepository<Friend> friendRepository;
-        private readonly IEventAggregator eventAggregator;
+        private readonly IFriendRepository friendRepository;
         private readonly IValidator<Friend> friendValidator;
+        private readonly IValidator<FriendPhoneNumber> phoneNumberValidator;
         private readonly IMessageDialogService messageDialogService;
-        private readonly IFriendOrganizerViewModelFactory viewModelFactory;
         private readonly ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService;
-        private IViewModel<FriendPhoneNumber> friendPhoneNumberListViewModel;
+        private FriendPhoneNumberWrapper selectedPhoneNumber;
         private FriendWrapper friend;
-        private bool hasChanges;
-        private bool hasPhoneNumberError = false;
 
         /// <summary>
         /// Public constructor for the view model.
         /// </summary>
         /// <param name="friendRepository">Data service to provide a <see cref="Friend"/> instance.</param>
         /// <param name="friendValidator">FluentValidation <see cref="FluentValidation.IValidator{T}"/> to perform data validation on the <see cref="Friend"/> instance.</param>
-        public FriendDetailViewModel(IDataRepository<Friend> friendRepository,
+        public FriendDetailViewModel(IFriendRepository friendRepository,
             IEventAggregator eventAggregator,
             IValidator<Friend> friendValidator,
+            IValidator<FriendPhoneNumber> phoneNumberValidator,
             IMessageDialogService messageDialogService,
-            IFriendOrganizerViewModelFactory viewModelFactory,
-            ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService)
+            ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService) : base(eventAggregator)
         {
             this.friendRepository = friendRepository;
-            this.eventAggregator = eventAggregator;
             this.friendValidator = friendValidator;
+            this.phoneNumberValidator = phoneNumberValidator;
             this.messageDialogService = messageDialogService;
-            this.viewModelFactory = viewModelFactory;
             this.programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
-            this.eventAggregator.GetEvent<OpenFriendDetailViewEvent>()
-               .Subscribe(OnOpenFriendDetailViewAsync);
+            AddPhoneNumberCommand = new DelegateCommand(OnAddPhoneNumberExecute);
+            RemovePhoneNumberCommand = new DelegateCommand(OnRemovePhoneNumberExecute, OnRemovePhoneNumberCanExecute);
 
-            this.eventAggregator.GetEvent<PhoneNumberChangedEvent>()
-                .Subscribe(OnPhoneNumberChanged);
-
-            FriendPhoneNumberListViewModel = CreateFriendPhoneNumberListViewModel();
-            
-            SaveCommand = new DelegateCommand(OnSaveExecute, OnSaveCanExecute);
-            DeleteCommand = new DelegateCommand(OnDeleteExecute, OnDeleteCanExecute);
 
             ProgrammingLanguages = new ObservableCollection<LookupItem<ProgrammingLanguage>>();
+            PhoneNumbers = new ObservableCollection<FriendPhoneNumberWrapper>();
         }
 
-        private void OnPhoneNumberChanged(bool hasError)
-        {
-            hasPhoneNumberError = hasError;
-            HasChanges = true;
-        }
-
-        private async void OnOpenFriendDetailViewAsync(int? friendId)
-        {
-            // If same Friend has been selected, do nothing..
-            if (friendId == friend.Id) return;
-
-            if (FriendPhoneNumberListViewModel !=null && FriendPhoneNumberListViewModel.HasChanges)
-            {
-                // Verify that the user really wants to navigate away 
-                MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
-                    "You have made changes. Navigate away without saving?",
-                    "Question");
-
-                // If they cancel, do nothing.
-                if (result == MessageDialogResult.Cancel) return;
-            }
-
-            FriendPhoneNumberListViewModel = CreateFriendPhoneNumberListViewModel();
-            await FriendPhoneNumberListViewModel.LoadAsync(friendId);
-        }
-
-        private IViewModel<FriendPhoneNumber> CreateFriendPhoneNumberListViewModel()
-        {
-            return (IViewModel<FriendPhoneNumber>)viewModelFactory.CreateViewModel(ViewType.FriendPhoneNumberList);
-        }
-
+        
         public FriendWrapper Friend
         {
             get { return friend; }
@@ -104,54 +65,72 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
-
-
-        public IViewModel<FriendPhoneNumber> FriendPhoneNumberListViewModel
-        {
-            get { return friendPhoneNumberListViewModel; }
-            set 
-            { 
-                friendPhoneNumberListViewModel = value;
-                OnPropertyChanged();
-            }
-        }
-
-
+        public ObservableCollection<FriendPhoneNumberWrapper> PhoneNumbers { get; }
 
         public ObservableCollection<LookupItem<ProgrammingLanguage>> ProgrammingLanguages { get; }
 
-        public bool HasChanges
+        public FriendPhoneNumberWrapper SelectedPhoneNumber
         {
-            get { return hasChanges; }
+            get { return selectedPhoneNumber; }
             set 
-            {
-                if (hasChanges != value)
-                {
-                    hasChanges = value;
-                    OnPropertyChanged();
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged(); 
-                }
+            { 
+                selectedPhoneNumber = value;
+                OnPropertyChanged();
+                ((DelegateCommand)RemovePhoneNumberCommand).RaiseCanExecuteChanged();
             }
         }
+            
+
+        public ICommand AddPhoneNumberCommand { get; }
+        public ICommand RemovePhoneNumberCommand { get; }
 
         /// <summary>
         /// Loads the target, wrapped <see cref="Friend"/> Entity from the repository.
         /// </summary>
         /// <param name="friendId">The Id of the <see cref="Friend"/> Entity to be loaded.</param>
-        public async Task LoadAsync(int? friendId)
+        public override async Task LoadAsync(int? friendId)
         {
             // Based on its Id, either get an existing Friend or create a new one.
             Friend friend = friendId.HasValue
-                ? await friendRepository.GetAsync(friendId.Value)
+                ? await friendRepository.GetByIdAsync(friendId.Value)
                 : await CreateNewFriendAsync();
 
             InitializeFriendWrapper(friend);
 
             TriggerValidationIfNew(friend);
 
-            await LoadProgrammingLanguagesLookupAsync();
+            InitializeFriendPhoneNumbers(friend);
 
-            await FriendPhoneNumberListViewModel.LoadAsync(friendId);
+            await LoadProgrammingLanguagesLookupAsync();
+        }
+
+        private void InitializeFriendPhoneNumbers(Friend friend)
+        {
+            foreach (var wrapper in PhoneNumbers)
+            {
+                wrapper.PropertyChanged -= FriendPhoneNumberWrapper_PropertyChanged;
+            }
+
+            PhoneNumbers.Clear();
+
+            foreach (var phoneNumber in friend.PhoneNumbers)
+            {
+                var wrapper = new FriendPhoneNumberWrapper(phoneNumber, phoneNumberValidator);
+                wrapper.PropertyChanged += FriendPhoneNumberWrapper_PropertyChanged;
+                PhoneNumbers.Add(wrapper);
+            }
+        }
+
+        private void FriendPhoneNumberWrapper_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (!HasChanges)
+            {
+                HasChanges = friendRepository.HasChanges();
+            }
+            if (e.PropertyName == nameof(FriendPhoneNumberWrapper.HasErrors))
+            {
+                ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            }
         }
 
         /// <summary>
@@ -188,11 +167,44 @@ namespace FriendOrganizer.UI.ViewModel
             ((DelegateCommand)DeleteCommand).RaiseCanExecuteChanged();
         }
 
-        
-        public ICommand SaveCommand { get; }
+       
+        private bool OnRemovePhoneNumberCanExecute()
+        {
+            return SelectedPhoneNumber != null;
+        }
 
-        public ICommand DeleteCommand { get; }
-        
+        private void OnRemovePhoneNumberExecute()
+        {
+            // Remove the wrapped phone number's event handler
+            SelectedPhoneNumber.PropertyChanged -= FriendPhoneNumberWrapper_PropertyChanged;
+            // Remove the phone number entity from the wrapped Friend entity's collection.
+            Friend.Model.PhoneNumbers.Remove(SelectedPhoneNumber.Model);
+            // Remove the wrapped phone number from the public collection.
+            PhoneNumbers.Remove(SelectedPhoneNumber);
+            // Null out the wrapped phone entity.
+            SelectedPhoneNumber = null;
+            // Re-sync the view model's HasChanges with the repository.
+            HasChanges = friendRepository.HasChanges();
+            // Recheck the CanExecute property of the save command.
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+        }
+
+       
+
+        private void OnAddPhoneNumberExecute()
+        {
+            // Create a new wrapper with a new (empty) phone number entity.
+            var newNumber = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new FriendPhoneNumberValidator());
+            // Add a property changed event handler to it.
+            newNumber.PropertyChanged += FriendPhoneNumberWrapper_PropertyChanged;
+            // Add the wrapper to the public collection
+            PhoneNumbers.Add(newNumber);
+            // Add the FriendPhoneNumber entity to the PhoneNumbers collection of the wrapped Friend entity.
+            Friend.Model.PhoneNumbers.Add(newNumber.Model);
+            // Trigger Validation
+            newNumber.Number = "";
+        }
+
         /// <summary>
         /// Loads <see cref="LookupItem{T}"/> from the <see cref="ILookupDataService{T}"/> where T = <see cref="ProgrammingLanguage"/> into
         /// the observable collection <see cref="ProgrammingLanguages"/>.
@@ -215,14 +227,17 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
-        private bool OnSaveCanExecute()
+        protected override bool OnSaveCanExecute()
         {
             // Can only execute if the wrapped Entity is not null, does not have errors,
             // and has been changed since loaded.
-            return Friend != null && !Friend.HasErrors && HasChanges & !hasPhoneNumberError;
+            return Friend != null 
+                && !Friend.HasErrors
+                && PhoneNumbers.All(pn => !pn.HasErrors)
+                && HasChanges;
         }
 
-        private async void OnSaveExecute()
+        protected override async void OnSaveExecuteAsync()
         {
             // Use the data repository to save the friend to the DB.
             await friendRepository.SaveAsync();
@@ -233,40 +248,37 @@ namespace FriendOrganizer.UI.ViewModel
 
             // Raise (publish) the AfterFriendSavedEvent, passing on the Id of the
             // updated friend, and its (perhaps changed) DisplayMember.
-            eventAggregator.GetEvent<AfterFriendSavedEvent>()
-                .Publish(
-                new AfterFriendSavedEventsArgs
-                {
-                    Id = Friend.Id,
-                    DisplayMember = Friend.FullName
-                });
+            base.RaiseDetailSavedEvent(Friend.Id, Friend.FullName);
+            
         }
 
-        private bool OnDeleteCanExecute()
+        protected override bool OnDeleteCanExecute()
         {
             return Friend != null && Friend.Id != 0;
         }
         
-        private async void OnDeleteExecute()
+        protected override async void OnDeleteExecuteAsync()
         {
+            // If the targeted friend has been added to any meeting, do not allow the deletion.
+            if (await friendRepository.HasMeetingsAsync(friend.Id))
+            {
+                messageDialogService.ShowInfoDialog($"{Friend.FullName} cannot be deleted, as this friend is part of at least one meeting.");
+                return;
+            }
+            
             // Verify that the user really wants to delete the Friend 
             MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
                 $"Do you really want to delete {Friend.FullName}?",
                 "Question");
 
-            // If they cancel, do nothing.
-            if (result == MessageDialogResult.Cancel)
+            // If they approve...
+            if (result == MessageDialogResult.OK)
             {
-                return;
-            }
-            else
-            {
-                await friendRepository.DeleteAsync(Friend.Model);
+                await friendRepository.RemoveAsync(Friend.Model);
 
                 HasChanges = friendRepository.HasChanges();
 
-                eventAggregator.GetEvent<AfterFriendDeletedEvent>()
-                    .Publish(Friend.Id); 
+                base.RaiseDetailDeletedEvent(Friend.Id);
             }
         }
 
@@ -290,7 +302,7 @@ namespace FriendOrganizer.UI.ViewModel
             Friend friend = new();
             
             // Add the new Friend to the friend data repository.
-            await friendRepository.CreateAsync(friend);
+            await friendRepository.AddAsync(friend);
 
             return friend;
         }

@@ -1,7 +1,5 @@
-﻿using FriendOrganizer.DataAccess.Services.Repositories;
-using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
-using FriendOrganizer.UI.Data;
+﻿using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Data.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -13,9 +11,8 @@ namespace FriendOrganizer.UI.HostBuilders
         {
             host.ConfigureServices(services =>
             {
-                services.AddTransient<IDataRepository<Friend>, FriendRepository>();
-                services.AddTransient<IPhoneNumbersRepository, PhoneNumbersRepository>();
-                //services.AddTransient<PhoneNumbersRepository>();
+                services.AddTransient<IFriendRepository, FriendRepository>();
+                services.AddTransient<IMeetingRepository, MeetingRepository>();
             });
 
             return host;

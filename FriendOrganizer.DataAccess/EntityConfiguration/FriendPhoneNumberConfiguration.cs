@@ -13,7 +13,11 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
     {
         public void Configure(EntityTypeBuilder<FriendPhoneNumber> builder)
         {
+            builder.ToTable(builder.Metadata.ClrType.Name);
             builder.Property(pn => pn.Number).IsRequired();
+
+            builder.HasData(
+                new FriendPhoneNumber { Id = 1, Number = "+49-5361-9-0", FriendId = 1 });
         }
     }
 }

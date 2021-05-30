@@ -15,6 +15,7 @@ namespace FriendOrganizer.UI.HostBuilders
                 services.AddSingleton<IValidator<Friend>, FriendValidator>();
                 services.AddSingleton<IValidator<FriendPhoneNumber>, FriendPhoneNumberValidator>();
                 services.AddSingleton<IValidator<ProgrammingLanguage>, ProgrammingLanguageValidator>();
+                services.AddSingleton<IValidator<Meeting>, MeetingValidator>();
             });
 
             return host;

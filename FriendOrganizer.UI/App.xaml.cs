@@ -1,4 +1,5 @@
 ﻿using FriendOrganizer.DataAccess;
+using FriendOrganizer.DataAccess.Migrations;
 using FriendOrganizer.UI.HostBuilders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,7 @@ namespace FriendOrganizer.UI
         {
             // Create the static IHost to provide all services for the app.
             host = CreateHostBuilder().Build();
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NDUyOTMzQDMxMzkyZTMxMmUzMElhcUVQWVd4T2lsYVJXenBtaEYyYk1NTGovTzl2Q2tSOGRZREpXbkFTVHc9");
         }
 
         /// <summary>

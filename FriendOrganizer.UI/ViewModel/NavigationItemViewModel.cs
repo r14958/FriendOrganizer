@@ -16,20 +16,22 @@ namespace FriendOrganizer.UI.ViewModel
     public class NavigationItemViewModel : ViewModelBase
     {
         private readonly IEventAggregator eventAggregator;
+        private readonly string detailViewModelName;
         private string displayMember;
 
-        public NavigationItemViewModel(int id, string displayMember, IEventAggregator eventAggregator)
+        public NavigationItemViewModel(int id, string displayMember, IEventAggregator eventAggregator,
+            string detailViewModelName)
         {
             this.Id = id;
             this.displayMember = displayMember;
             this.eventAggregator = eventAggregator;
-
-            OpenDetailFriendViewCommand = new DelegateCommand(OnOpenDetailFriendView);
+            this.detailViewModelName = detailViewModelName;
+            OpenDetailViewCommand = new DelegateCommand(OnOpenDetailViewExecute);
         }
 
        
         /// <summary>
-        /// Gets the ID of the Friend.  
+        /// Gets the ID of the Item.  
         /// </summary>
         public int Id { get; }
 
@@ -53,15 +55,20 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
         
-        public ICommand OpenDetailFriendViewCommand { get; }
+        public ICommand OpenDetailViewCommand { get; }
 
         /// <summary>
-        /// Fires the <see cref="OpenFriendDetailViewEvent"/> publishing <see cref="Id"/> of the selected Friend.
+        /// Fires the <see cref="OpenDetailViewEvent"/> publishing <see cref="Id"/> of the selected Friend.
         /// </summary>
-        private void OnOpenDetailFriendView()
+        private void OnOpenDetailViewExecute()
         {
-            eventAggregator.GetEvent<OpenFriendDetailViewEvent>()
-                            .Publish(Id);
+            eventAggregator.GetEvent<OpenDetailViewEvent>()
+                            .Publish(
+                new OpenDetailViewEventArgs
+                {
+                    Id = Id,
+                    ViewModelName = detailViewModelName
+                });
         }
     }
 
