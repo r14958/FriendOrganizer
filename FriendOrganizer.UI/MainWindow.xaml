@@ -48,7 +48,7 @@
         <!--This content control will be displayed as a DetailView as defined in the Windows.Resources-->
         <ContentControl Grid.Row="1" 
                                Grid.Column="1" 
-                               Content="{Binding DetailViewModel}">
+                               Content="{Binding SelectedDetailViewModel}">
         </ContentControl>
     </Grid>
 </Window>

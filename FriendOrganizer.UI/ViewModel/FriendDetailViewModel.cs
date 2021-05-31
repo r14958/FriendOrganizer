@@ -18,7 +18,7 @@ namespace FriendOrganizer.UI.ViewModel
     /// <summary>
     /// View model for the FriendDetail view.
     /// </summary>
-    public class FriendDetailViewModel : DetailViewModelBase
+    public class FriendDetailViewModel : DetailViewModelBase, IFriendDetailViewModel
     {
         private readonly IFriendRepository friendRepository;
         private readonly IValidator<Friend> friendValidator;
