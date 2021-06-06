@@ -1,4 +1,6 @@
-﻿using FriendOrganizer.DataAccess;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using FriendOrganizer.DataAccess;
 using FriendOrganizer.DataAccess.Migrations;
 using FriendOrganizer.UI.HostBuilders;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,7 @@ namespace FriendOrganizer.UI
 
         public App()
         {
+            
             // Create the static IHost to provide all services for the app.
             host = CreateHostBuilder().Build();
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NDUyOTMzQDMxMzkyZTMxMmUzMElhcUVQWVd4T2lsYVJXenBtaEYyYk1NTGovTzl2Q2tSOGRZREpXbkFTVHc9");
@@ -55,7 +58,7 @@ namespace FriendOrganizer.UI
             {
                 context.Database.Migrate();
             }
-            
+
             // Get an instance of the MainWindow from our hosting service and show it.
             MainWindow mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();

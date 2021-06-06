@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FriendOrganizer.Domain.Services
+namespace FriendOrganizer.UI.Data.Lookups
 {
     public interface ILookupDataService<T> where T : EntityBase
     {

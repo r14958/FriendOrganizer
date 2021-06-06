@@ -1,19 +1,18 @@
-﻿using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
+﻿using FriendOrganizer.DataAccess;
+using FriendOrganizer.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FriendOrganizer.DataAccess.Services.Lookups
-
+namespace FriendOrganizer.UI.Data.Lookups
 {
     /// <summary>
     /// Generic data service to return a read-only, lightweight, IEnumerable collection of two properties of an <see cref="EntityBase"/> data model: the item's id
     /// and one other property that must return a string.
     /// </summary>
     /// <typeparam name="T">The type of the (<see cref="EntityBase"/> data model.</typeparam>
-    public class LookupDataServiceAsync<T> : ILookupDataService<T> where T : EntityBase
+    public class LookupDataService<T> : ILookupDataService<T> where T : EntityBase
     {
         private readonly FriendOrganizerDbContextFactory contextFactory;
         private readonly string propertyName;
@@ -23,7 +22,7 @@ namespace FriendOrganizer.DataAccess.Services.Lookups
         /// </summary>
         /// <param name="contextFactory">The <see cref="FriendOrganizerDbContextFactory"/> that provides the DbContext for EF Core.</param>
         /// <param name="propertyName">The name of the property that will be returned.  Must return a string.</param>
-        public LookupDataServiceAsync(FriendOrganizerDbContextFactory contextFactory, string propertyName)
+        public LookupDataService(FriendOrganizerDbContextFactory contextFactory, string propertyName)
         {
             this.contextFactory = contextFactory;
             this.propertyName = propertyName;

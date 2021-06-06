@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace FriendOrganizer.UI
 {
     public delegate TViewModel CreateViewModel<TViewModel>() where TViewModel : ViewModelBase;
-    public delegate TWrapper CreateModelWrapper<TWrapper>() where TWrapper : NotifyDataErrorInfoBase;
+    public delegate IDetailViewModel CreateDetailViewModel(string viewModelName);
 
     public static class Utilities
     {
@@ -21,10 +21,6 @@ namespace FriendOrganizer.UI
 
         }
 
-        public enum WrapperType
-        {
-            Friend,
-            Meeting
-        }
+        
     }
 }

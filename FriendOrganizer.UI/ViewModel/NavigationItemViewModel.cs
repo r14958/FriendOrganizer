@@ -11,7 +11,7 @@ using System.Windows.Input;
 namespace FriendOrganizer.UI.ViewModel
 {
     /// <summary>
-    /// Encapsulates the minimum information to describe a Friend navigation entity: its Id and a description (displayMember).
+    /// Encapsulates the minimum information to describe a  navigation entity: its Id and a description (displayMember).
     /// </summary>
     public class NavigationItemViewModel : ViewModelBase
     {

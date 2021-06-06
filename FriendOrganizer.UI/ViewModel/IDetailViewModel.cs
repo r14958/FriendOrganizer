@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public interface IDetailViewModel
+    public interface IDetailViewModel : IViewModel
     {
-        Task LoadAsync(int? id);
+        Task LoadAsync(int id);
 
         public bool HasChanges { get; }
+
+        int Id { get; }
     }
 }

@@ -15,8 +15,13 @@
         <DataTemplate DataType="{x:Type viewModel:FriendDetailViewModel}">
             <view:FriendDetailView/>
         </DataTemplate>
+        <!--Same as above, expect for MeetingDetailView and MeetingDetailViewModel-->
         <DataTemplate DataType="{x:Type viewModel:MeetingDetailViewModel}">
             <view:MeetingDetailView/>
+        </DataTemplate>
+        <!--Same as above, expect for MeetingDetailView and MeetingDetailViewModel-->
+        <DataTemplate DataType="{x:Type viewModel:ProgrammingLanguageDetailViewModel}">
+            <view:ProgrammingLanguageDetailView/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -34,21 +39,43 @@
             <MenuItem Header="Create">
                 <!--To create a new Friend type, pass the type of the FriendDetailViewModel-->
                 <!--Note that we already defined the viewModel namespace-->
+                <!--The commandParameter transmit the target Type (ViewModel) through the delegateCommand<Type>-->
                 <MenuItem Header="New Friend" Command="{Binding CreateNewDetailCommand}"
                           CommandParameter="{x:Type viewModel:FriendDetailViewModel}"/>
                 <MenuItem Header="New Meeting" Command="{Binding CreateNewDetailCommand}"
                           CommandParameter="{x:Type viewModel:MeetingDetailViewModel}"/>
             </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Programming Languages" Command="{Binding OpenSingleDetailViewCommand}"
+                          CommandParameter="{x:Type viewModel:ProgrammingLanguageDetailViewModel}"/>
+            </MenuItem>
         </Menu>
         
-        <!--Navigation and Detail Views Row-->
+        <!--Row 1, Left Column: Navigation Menu-->
         <view:NavigationView Grid.Row="1"
                              Grid.Column="0"
                              DataContext="{Binding NavigationViewModel}"/>
+        
+        <!--Row 1, Right Column: DetailView-->
         <!--This content control will be displayed as a DetailView as defined in the Windows.Resources-->
-        <ContentControl Grid.Row="1" 
+        <!--Change to TabControl to display multiple DetailViews-->
+        <TabControl Grid.Row="1" 
                                Grid.Column="1" 
-                               Content="{Binding SelectedDetailViewModel}">
-        </ContentControl>
+                               ItemsSource="{Binding DetailViewModels}"
+                               SelectedItem="{Binding SelectedDetailViewModel, Mode=TwoWay}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Title}"/>
+                        <TextBlock Text="*" Visibility="{Binding HasChanges,
+                            Converter={StaticResource booleanToVisibilityConverter}}"/>
+                        <Button Content="x" Background="Red" Foreground="White"
+                                Margin="2" FontSize="20"
+                                VerticalAlignment="Top"
+                                Command="{Binding CloseDetailViewCommand}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
     </Grid>
 </Window>

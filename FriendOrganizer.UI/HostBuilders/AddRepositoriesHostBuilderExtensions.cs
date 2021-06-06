@@ -13,6 +13,7 @@ namespace FriendOrganizer.UI.HostBuilders
             {
                 services.AddTransient<IFriendRepository, FriendRepository>();
                 services.AddTransient<IMeetingRepository, MeetingRepository>();
+                services.AddTransient<IProgrammingLanguageRepository, ProgrammingLanguageRepository>();
             });
 
             return host;

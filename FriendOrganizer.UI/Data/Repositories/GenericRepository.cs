@@ -1,10 +1,8 @@
 ﻿using FriendOrganizer.DataAccess;
 using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.Data.Repositories
@@ -31,10 +29,9 @@ namespace FriendOrganizer.UI.Data.Repositories
             await context.SaveChangesAsync();
         }
 
-        public virtual async Task RemoveAsync(T entity)
+        public virtual void Remove(T entity)
         {
             context.Set<T>().Remove(entity);
-            await context.SaveChangesAsync();
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()

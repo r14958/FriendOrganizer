@@ -49,7 +49,7 @@ namespace FriendOrganizer.UI.Wrapper
             }
         }
 
-        private DateTimeOffset FixedDtoValue(DateTimeOffset input)
+        private static DateTimeOffset FixedDtoValue(DateTimeOffset input)
         {
 
             // If a non-default value is inputted, return the same value.

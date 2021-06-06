@@ -1,16 +1,10 @@
 ﻿using FriendOrganizer.DataAccess;
-using FriendOrganizer.DataAccess.Services.Lookups;
 using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
+using FriendOrganizer.UI.Data.Lookups;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.HostBuilders
 {
@@ -35,13 +29,13 @@ namespace FriendOrganizer.UI.HostBuilders
                 // Register the Data Services
                 // Constructor for LookupDataServiceAsync<Friend> requires two parameters, so this is how they are provided.
                 services.AddSingleton<ILookupDataService<Friend>>(s =>
-                    new LookupDataServiceAsync<Friend>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Friend.FullName)));
+                    new LookupDataService<Friend>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Friend.FullName)));
                 // Same for the LookupDataServiceAsync<ProgrammingLanguage>
                 services.AddSingleton<ILookupDataService<ProgrammingLanguage>>(s =>
-                    new LookupDataServiceAsync<ProgrammingLanguage>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(ProgrammingLanguage.Name)));
+                    new LookupDataService<ProgrammingLanguage>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(ProgrammingLanguage.Name)));
                 // Same for the LookupDataServiceAsync<ProgrammingLanguage>
                 services.AddSingleton<ILookupDataService<Meeting>>(s =>
-                    new LookupDataServiceAsync<Meeting>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Meeting.Title)));
+                    new LookupDataService<Meeting>(new FriendOrganizerDbContextFactory(configureDbContext), nameof(Meeting.Title)));
             });
 
             return host;

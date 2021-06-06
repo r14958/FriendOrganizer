@@ -1,5 +1,5 @@
 ﻿using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
+using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Event;
 using Prism.Events;
 using System;
@@ -102,7 +102,7 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
-        private void AfterDetailDeleted(ObservableCollection<NavigationItemViewModel> items, 
+        private static void AfterDetailDeleted(ObservableCollection<NavigationItemViewModel> items,
             AfterDetailDeletedEventArgs args)
         {
             NavigationItemViewModel item = items.SingleOrDefault(i => i.Id == args.Id);

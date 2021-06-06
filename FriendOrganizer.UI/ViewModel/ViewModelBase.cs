@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace FriendOrganizer.UI.ViewModel
 {
     
-    public class ViewModelBase : INotifyPropertyChanged
+    public class ViewModelBase : IViewModel
     {
         public virtual void Dispose() { }
         

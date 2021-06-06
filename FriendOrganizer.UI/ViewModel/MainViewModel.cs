@@ -1,4 +1,5 @@
-﻿using FriendOrganizer.Domain.Models;
+﻿using Autofac.Features.Indexed;
+using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.ViewModel.Factory;
@@ -6,6 +7,7 @@ using Prism.Commands;
 using Prism.Events;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -15,27 +17,30 @@ namespace FriendOrganizer.UI.ViewModel
 {
     public class MainViewModel : ViewModelBase
     {
+        private readonly CreateDetailViewModel createDetailViewModel;
         private readonly IEventAggregator eventAggregator;
         private readonly IMessageDialogService messageDialogService;
-        private readonly IFriendOrganizerViewModelFactory viewModelFactory;
         private IDetailViewModel selectedDetailViewModel;
+        private int nextNewItemId = 0;
 
         public MainViewModel(
-            IFriendOrganizerViewModelFactory viewModelFactory, 
+            INavigationViewModel navigationViewModel,
+            CreateDetailViewModel createDetailViewModel,
             IEventAggregator eventAggregator,
             IMessageDialogService messageDialogService) 
         {
-            this.viewModelFactory = viewModelFactory;
+            this.createDetailViewModel = createDetailViewModel;
             this.eventAggregator = eventAggregator;
             this.messageDialogService = messageDialogService;
 
-            // When a new FriendDetailView is opened, call the appropriate method to populate it.
             this.eventAggregator.GetEvent<OpenDetailViewEvent>()
                 .Subscribe(OnOpenDetailView);
             this.eventAggregator.GetEvent<AfterDetailDeletedEvent>()
-                .Subscribe(AfterDetailDeleted);
+                .Subscribe(OnAfterDetailDeleted);
+            this.eventAggregator.GetEvent<AfterDetailCloseEvent>()
+                .Subscribe(OnAfterDetailClosed);
 
-            NavigationViewModel = (NavigationViewModel)viewModelFactory.CreateViewModel(ViewType.Navigation);
+            NavigationViewModel = navigationViewModel;
 
             DetailViewModels = new ObservableCollection<IDetailViewModel>();
 
@@ -43,9 +48,11 @@ namespace FriendOrganizer.UI.ViewModel
             // In this case, our parameter is of type Type, and is relaying the type of ViewModel to load.
             CreateNewDetailCommand = new DelegateCommand<Type>(OnCreateNewDetailExecute);
 
+            OpenSingleDetailViewCommand = new DelegateCommand<Type>(OnOpenSingleDetailViewExecute);
+
         }
 
-        
+
         /// <summary>
         /// Gets the <see cref="ViewModel.NavigationViewModel"/> property for the <see cref="MainViewModel"/> class.
         /// </summary>
@@ -80,49 +87,88 @@ namespace FriendOrganizer.UI.ViewModel
 
         public ICommand CreateNewDetailCommand { get; }
 
+        public ICommand OpenSingleDetailViewCommand { get; }
+
+        private async void OnOpenDetailView(OpenDetailViewEventArgs args)
+        {
+            // Check to see if the collection of DetailViewModels already contains the requested DVM.
+            var detailViewModel = DetailViewModels
+                .SingleOrDefault(vm => vm.Id == args.Id
+                && vm.GetType().Name == args.ViewModelName);
+
+            // If not, create one, populate it, and add it to the collection.
+            // Note: since any new DVM will have Id = 0, this means only one new DVM
+            // can be created at any given time.
+            if (detailViewModel == null)
+            {
+                detailViewModel = createDetailViewModel(args.ViewModelName);
+                await detailViewModel.LoadAsync(args.Id);
+                DetailViewModels.Add(detailViewModel);
+            }
+            
+            // Set the selected DetailViewModel to either the found or new DVM
+            SelectedDetailViewModel = detailViewModel;
+        }
+
+
         /// <summary>
         /// Creates a new <see cref="SelectedDetailViewModel"/> and populates it. 
         /// </summary>
         /// <param name="args"></param>
         /// <remarks>Will check for changes to the existing <see cref="SelectedDetailViewModel"/> and verify with the user before 
         /// navigating away without saving.</remarks>
-        private async void OnOpenDetailView(OpenDetailViewEventArgs args)
-        {
-            // If we already have a view model and it has changes...
-            if (SelectedDetailViewModel != null && SelectedDetailViewModel.HasChanges)
-            {
-                // Verify that the user really wants to navigate away 
-                MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
-                    "You have made changes. Navigate away without saving?",
-                    "Question");
-
-                // If they cancel, do nothing.
-                if (result == MessageDialogResult.Cancel) return;
-            }
-
-            switch (args.ViewModelName)
-            {
-                case nameof(FriendDetailViewModel):
-                    SelectedDetailViewModel = (IDetailViewModel)viewModelFactory.CreateViewModel(ViewType.FriendDetail);
-                    break;
-                case nameof(MeetingDetailViewModel):
-                    SelectedDetailViewModel = (IDetailViewModel)viewModelFactory.CreateViewModel(ViewType.MeetingDetail);
-                    break;
-                default:
-                    throw new ArgumentException($"ViewModel {args.ViewModelName} is unknown and cannot be opened.");
-            }
-            await SelectedDetailViewModel.LoadAsync(args.Id);
-        }
-
         private void OnCreateNewDetailExecute(Type viewModelType)
         {
-            OnOpenDetailView(new OpenDetailViewEventArgs { ViewModelName = viewModelType.Name });
+            // By using the int decrement operator for the Id property, every new
+            // DetailViewModel gets its own unique Id, which is always less than zero.
+            // This allows multiple new DVMs to be created and referenced simultaneously
+            // before they are saved to the DB and given proper Id values.
+            OnOpenDetailView(new OpenDetailViewEventArgs 
+                {
+                    Id = nextNewItemId--, 
+                    ViewModelName = viewModelType.Name 
+                });
         }
 
-        private void AfterDetailDeleted(AfterDetailDeletedEventArgs args)
+        private void OnOpenSingleDetailViewExecute(Type viewModelType)
         {
-            SelectedDetailViewModel = null;
+            OnOpenDetailView(new OpenDetailViewEventArgs
+            {
+                Id = -1,
+                ViewModelName = viewModelType.Name
+            });
         }
 
+        /// <summary>
+        /// Based on the information passed on by the event, find the closed
+        /// DetailViewModel in the collection and remove it.
+        /// </summary>
+        /// <param name="args"></param>
+        private void OnAfterDetailClosed(AfterDetailCloseEventArgs args)
+        {
+            RemoveDetailViewModel(args.Id, args.ViewModelName);
+        }
+
+        /// <summary>
+        /// Based on the information passed on by the event, find the deleted
+        /// DetailViewModel in the collection and remove it.
+        /// </summary>
+        /// <param name="args"></param>
+        private void OnAfterDetailDeleted(AfterDetailDeletedEventArgs args)
+        {
+            RemoveDetailViewModel(args.Id, args.ViewModelName);
+        }
+
+        private void RemoveDetailViewModel(int id, string viewModelName)
+        {
+            var detailviewModel = DetailViewModels
+                            .SingleOrDefault(vm => vm.Id == id
+                            && vm.GetType().Name == viewModelName);
+
+            if (detailviewModel != null)
+            {
+                DetailViewModels.Remove(detailviewModel);
+            }
+        }
     }
 }

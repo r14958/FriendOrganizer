@@ -17,7 +17,7 @@ namespace FriendOrganizer.UI.Data.Repositories
 
         Task SaveAsync();
 
-        Task RemoveAsync(T entity);
+        void Remove(T entity);
 
         bool HasChanges();
     }

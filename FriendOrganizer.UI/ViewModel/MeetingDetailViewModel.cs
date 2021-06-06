@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Data.Repositories;
+using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
@@ -17,7 +18,6 @@ namespace FriendOrganizer.UI.ViewModel
     public class MeetingDetailViewModel : DetailViewModelBase
     {
         private readonly IMeetingRepository meetingRepository;
-        private readonly IMessageDialogService messageDialogService;
         private readonly IValidator<Meeting> meetingValidator;
         private MeetingWrapper meeting;
         private Friend selectedAddedFriend;
@@ -26,17 +26,47 @@ namespace FriendOrganizer.UI.ViewModel
         public MeetingDetailViewModel(IMeetingRepository meetingRepository,
             IEventAggregator eventAggregator,
             IMessageDialogService messageDialogService,
-            IValidator<Meeting> meetingValidator) : base(eventAggregator)
+            IValidator<Meeting> meetingValidator) : base(eventAggregator, messageDialogService)
         {
             this.meetingRepository = meetingRepository;
-            this.messageDialogService = messageDialogService;
             this.meetingValidator = meetingValidator;
+
+            eventAggregator.GetEvent<AfterDetailSavedEvent>().Subscribe(OnDetailSaved);
+            eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnDetailDeleted);
+
 
             AddedFriends = new ObservableCollection<Friend>();
             AvailableFriends = new ObservableCollection<Friend>();
 
             AddFriendCommand = new DelegateCommand(OnAddFriendExecute, OnAddFriendCanExecute);
             RemoveFriendCommand = new DelegateCommand(OnRemoveFriendExecute, OnRemoveFriendCanExecute);
+        }
+
+        private async void OnDetailDeleted(AfterDetailDeletedEventArgs args)
+        {
+            // If it was a FriendDetailViewModel that was deleted...
+            if (args.ViewModelName == nameof(FriendDetailViewModel))
+            {
+                // Reload the picklist of Friends.
+                await SetupPickList();
+            }
+        }
+
+        /// <summary>
+        /// Makes sure the picklist of Friends for the meeting contains the latest values.
+        /// </summary>
+        /// <param name="args"></param>
+        private async void OnDetailSaved(AfterDetailSavedEventsArgs args)
+        {
+            // If it was a FriendDetailViewModel that was changed...
+            if (args.ViewModelName == nameof(FriendDetailViewModel))
+            {
+                // Update the meeting repository with the updated Friend info.
+                await meetingRepository.ReloadFriendAsync(args.Id);
+
+                // Reload the picklist of Friends.
+                await SetupPickList();
+            }
         }
 
         private void OnAddFriendExecute()
@@ -114,20 +144,31 @@ namespace FriendOrganizer.UI.ViewModel
         public ICommand AddFriendCommand { get; }
         public ICommand RemoveFriendCommand { get; }
 
-        public override async Task LoadAsync(int? id)
+        public override async Task LoadAsync(int id)
         {
-            Meeting meeting = id.HasValue
-                ? await meetingRepository.GetByIdAsync(id.Value)
+            Meeting meeting = id > 0
+                ? await meetingRepository.GetByIdAsync(id)
                 : await CreateNewMeetingAsync();
+
+            // Set the ViewModel's Id to the Meeting's Id.
+            Id = meeting.Id;
 
             InitializeMeetingWrapper(meeting);
 
             TriggerValidationIfNew(meeting);
 
+            // Set the Title property of the ViewModel.
+            SetTitle();
+
             // Load the friends for the picklist.
 
             await SetupPickList();
 
+        }
+
+        private void SetTitle()
+        {
+            Title = Meeting.Title;
         }
 
         private async Task SetupPickList()
@@ -156,7 +197,7 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
-        protected override async void OnDeleteExecuteAsync()
+        protected override void OnDeleteExecuteAsync()
         {
             MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
                 $"Do you really want to delete {Meeting.Title}?",
@@ -170,7 +211,7 @@ namespace FriendOrganizer.UI.ViewModel
             }
             else
             {
-                await meetingRepository.RemoveAsync(Meeting.Model);
+                meetingRepository.Remove(Meeting.Model);
 
                 HasChanges = meetingRepository.HasChanges();
 
@@ -194,6 +235,12 @@ namespace FriendOrganizer.UI.ViewModel
         {
             await meetingRepository.SaveAsync();
 
+            //Resync the ViewModel's ID to the meeting's ID.
+            Id = Meeting.Id;
+
+            SetTitle();
+
+            // Resync the VM's HasChanges with the repository.
             HasChanges = meetingRepository.HasChanges();
 
             base.RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
@@ -213,6 +260,12 @@ namespace FriendOrganizer.UI.ViewModel
                     HasChanges = meetingRepository.HasChanges();
                 }
 
+                // Update VM Title if the Meeting's Title has changed.
+                if (e.PropertyName == nameof(Meeting.Title))
+                {
+                    SetTitle();
+                }
+
                 // The HasErrors property of the Entity has changed...
                 if (e.PropertyName == nameof(Meeting.HasErrors))
                 {
@@ -220,6 +273,7 @@ namespace FriendOrganizer.UI.ViewModel
                     ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
                 }
             };
+
 
             // Now that the entity has been loaded, raise the CanExecute changed event of the SaveCommand.
             ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();

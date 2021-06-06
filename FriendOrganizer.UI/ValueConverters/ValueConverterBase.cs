@@ -28,7 +28,7 @@ namespace FriendOrganizer.UI.ValueConverters
         /// <returns></returns>
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            return Converter ?? (Converter = new T());
+            return Converter ??= new T();
         }
 
         public abstract object Convert(object value, Type targetType, object parameter, CultureInfo culture);

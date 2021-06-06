@@ -1,7 +1,5 @@
-﻿using FriendOrganizer.DataAccess;
-using FriendOrganizer.DataAccess.Services.Lookups;
-using FriendOrganizer.Domain.Models;
-using FriendOrganizer.Domain.Services;
+﻿using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +15,7 @@ namespace FriendOrganizer.UI.HostBuilders
             {
                 services.AddSingleton<IMessageDialogService, MessageDialogService>();
                 services.AddSingleton<IEventAggregator, EventAggregator>();
+
             });
 
             return host;

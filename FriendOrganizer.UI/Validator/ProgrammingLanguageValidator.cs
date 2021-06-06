@@ -8,8 +8,10 @@ namespace FriendOrganizer.UI.Validator
         public ProgrammingLanguageValidator()
         {
             RuleFor(pl => pl.Name)
+                .NotEmpty()
+                .WithMessage("A name for the programming language is required.")
                 .MaximumLength(50)
-                .WithMessage("First name cannot exceed 50 characters.");
+                .WithMessage("Name cannot exceed 50 characters.");
         }
     }
 }
