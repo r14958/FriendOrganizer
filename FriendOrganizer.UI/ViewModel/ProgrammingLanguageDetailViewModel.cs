@@ -148,23 +148,25 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected override async void OnSaveExecuteAsync()
         {
-            try
-            {
-                await programmingLanguageRepository.SaveAsync();
-                HasChanges = programmingLanguageRepository.HasChanges();
-                base.RaiseCollectionSavedEvent();
-            }
-            catch (Exception ex)
-            {
-
-                while (ex.InnerException != null)
+            await SaveWithOptimisticConcurrencyAsync(programmingLanguageRepository.SaveAsync,
+                () =>
+                //try
                 {
-                    ex = ex.InnerException;
-                }
-                messageDialogService.ShowInfoDialog("Error while saving the entities, " +
-                    "the data will be reloaded. Details: " + ex.Message);
-                await LoadAsync(Id);
-            }
+                    //await programmingLanguageRepository.SaveAsync();
+                    HasChanges = programmingLanguageRepository.HasChanges();
+                    base.RaiseCollectionSavedEvent();
+                });
+            //catch (Exception ex)
+            //{
+
+            //    while (ex.InnerException != null)
+            //    {
+            //        ex = ex.InnerException;
+            //    }
+            //    messageDialogService.ShowInfoDialog("Error while saving the entities, " +
+            //        "the data will be reloaded. Details: " + ex.Message);
+            //    await LoadAsync(Id);
+            //}
         }
     }
 }

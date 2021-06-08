@@ -6,6 +6,8 @@ using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Prism.Commands;
 using Prism.Events;
 using System;
@@ -295,22 +297,22 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected override async void OnSaveExecuteAsync()
         {
-            // Use the data repository to save the friend to the DB.
-            await friendRepository.SaveAsync();
+            await SaveWithOptimisticConcurrencyAsync(friendRepository.SaveAsync,
+                () =>
+                {
+                    //Resync the VM's Id to the Friend's Id.
+                    Id = Friend.Id;
 
-            //Resync the VM's Id to the Friend's Id.
-            Id = Friend.Id;
+                    SetTitle();
 
-            SetTitle();
+                    // Once the Friend entity has been saved to the DB, update
+                    // HasChanges property for the view model.
+                    HasChanges = friendRepository.HasChanges();
 
-            // Once the Friend entity has been saved to the DB, update
-            // HasChanges property for the view model.
-            HasChanges = friendRepository.HasChanges();
-
-            // Raise (publish) the AfterFriendSavedEvent, passing on the Id of the
-            // updated friend, and its (perhaps changed) DisplayMember.
-            base.RaiseDetailSavedEvent(Friend.Id, Friend.FullName);
-            
+                    // Raise (publish) the AfterFriendSavedEvent, passing on the Id of the
+                    // updated friend, and its (perhaps changed) DisplayMember.
+                    base.RaiseDetailSavedEvent(Friend.Id, Friend.FullName);
+                });
         }
 
         protected override bool OnDeleteCanExecute()
@@ -336,6 +338,8 @@ namespace FriendOrganizer.UI.ViewModel
             if (result == MessageDialogResult.OK)
             {
                 friendRepository.Remove(Friend.Model);
+
+                await friendRepository.SaveAsync();
 
                 HasChanges = friendRepository.HasChanges();
 

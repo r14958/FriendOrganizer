@@ -17,6 +17,9 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
             builder.Property(m => m.Title).IsRequired();
             builder.Property(m => m.Title).HasMaxLength(50);
 
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            builder.Property(m => m.Version).HasDefaultValue(0).IsRowVersion(); 
+            
             builder.HasData(
                 new Meeting
                 {

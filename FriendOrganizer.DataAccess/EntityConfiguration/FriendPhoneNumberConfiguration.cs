@@ -16,6 +16,9 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
             builder.ToTable(builder.Metadata.ClrType.Name);
             builder.Property(pn => pn.Number).IsRequired();
 
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            builder.Property(pn => pn.Version).HasDefaultValue(0).IsRowVersion();
+
             builder.HasData(
                 new FriendPhoneNumber { Id = 1, Number = "+49-5361-9-0", FriendId = 1 });
         }

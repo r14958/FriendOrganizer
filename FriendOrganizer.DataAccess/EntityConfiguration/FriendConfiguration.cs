@@ -22,6 +22,9 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
 
             builder.Property(f => f.Email).HasMaxLength(100); // Ignored by SQLite
 
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            builder.Property(f => f.Version).HasDefaultValue(0).IsRowVersion();
+
             builder.HasData(
                new Friend { Id = 1, FirstName = "Thomas", LastName = "Huber" },
                new Friend { Id = 2, FirstName = "Jeff", LastName = "Klein" },

@@ -12,6 +12,9 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
             builder.Property(pl => pl.Name).IsRequired();
             builder.Property(pl => pl.Name).HasMaxLength(50);
 
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            builder.Property(pl => pl.Version).HasDefaultValue(0).IsRowVersion();
+
             builder.HasData(
                 new ProgrammingLanguage { Id = 1, Name = "C#" },
                 new ProgrammingLanguage { Id = 2, Name = "Python" },

@@ -25,7 +25,7 @@ namespace FriendOrganizer.UI.HostBuilders
                 services.AddSingleton<CreateViewModel<MeetingDetailViewModel>>(services => () => services.GetRequiredService<MeetingDetailViewModel>());
                 services.AddSingleton<CreateViewModel<NavigationViewModel>>(services => () => services.GetRequiredService<NavigationViewModel>());
 
-                services.AddSingleton<CreateDetailViewModel>();
+                //services.AddSingleton<CreateDetailViewModel>();
                 services.AddSingleton<CreateDetailViewModel>(provider => name =>
                 {
                     switch (name)

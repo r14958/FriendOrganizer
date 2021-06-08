@@ -233,17 +233,19 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected override async void OnSaveExecuteAsync()
         {
-            await meetingRepository.SaveAsync();
+            await SaveWithOptimisticConcurrencyAsync(meetingRepository.SaveAsync,
+               () =>
+               {
+                   //Resync the ViewModel's ID to the meeting's ID.
+                   Id = Meeting.Id;
 
-            //Resync the ViewModel's ID to the meeting's ID.
-            Id = Meeting.Id;
+                   SetTitle();
 
-            SetTitle();
+                   // Resync the VM's HasChanges with the repository.
+                   HasChanges = meetingRepository.HasChanges();
 
-            // Resync the VM's HasChanges with the repository.
-            HasChanges = meetingRepository.HasChanges();
-
-            base.RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
+                   base.RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
+               });
         }
        
         private void InitializeMeetingWrapper(Meeting meeting)

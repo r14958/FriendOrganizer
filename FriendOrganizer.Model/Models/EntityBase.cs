@@ -11,7 +11,11 @@ namespace FriendOrganizer.Domain.Models
     {
         public int Id { get; set; }
 
+        public int Version { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
+
+
 
         /// <summary>
         /// Raises the property changed event.

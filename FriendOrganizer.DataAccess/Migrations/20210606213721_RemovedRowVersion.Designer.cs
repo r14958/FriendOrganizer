@@ -3,14 +3,16 @@ using System;
 using FriendOrganizer.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FriendOrganizer.DataAccess.Migrations
 {
     [DbContext(typeof(FriendOrganizerDbContext))]
-    partial class FriendOrganizerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210606213721_RemovedRowVersion")]
+    partial class RemovedRowVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,12 +56,6 @@ namespace FriendOrganizer.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.HasIndex("FavoriteLanguageId");
@@ -71,29 +67,25 @@ namespace FriendOrganizer.DataAccess.Migrations
                         {
                             Id = 1,
                             FirstName = "Thomas",
-                            LastName = "Huber",
-                            Version = 0
+                            LastName = "Huber"
                         },
                         new
                         {
                             Id = 2,
                             FirstName = "Jeff",
-                            LastName = "Klein",
-                            Version = 0
+                            LastName = "Klein"
                         },
                         new
                         {
                             Id = 3,
                             FirstName = "Andreas",
-                            LastName = "Boehler",
-                            Version = 0
+                            LastName = "Boehler"
                         },
                         new
                         {
                             Id = 4,
                             FirstName = "Chrissi",
-                            LastName = "Egin",
-                            Version = 0
+                            LastName = "Egin"
                         });
                 });
 
@@ -110,12 +102,6 @@ namespace FriendOrganizer.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.HasIndex("FriendId");
@@ -127,8 +113,7 @@ namespace FriendOrganizer.DataAccess.Migrations
                         {
                             Id = 1,
                             FriendId = 1,
-                            Number = "+49-5361-9-0",
-                            Version = 0
+                            Number = "+49-5361-9-0"
                         });
                 });
 
@@ -149,12 +134,6 @@ namespace FriendOrganizer.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.ToTable("Meeting");
@@ -165,16 +144,14 @@ namespace FriendOrganizer.DataAccess.Migrations
                             Id = 2,
                             DateFrom = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
                             DateTo = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            Title = "Watching Football",
-                            Version = 0
+                            Title = "Watching Football"
                         },
                         new
                         {
                             Id = 1,
                             DateFrom = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
                             DateTo = new DateTimeOffset(new DateTime(2021, 5, 29, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, -4, 0, 0, 0)),
-                            Title = "Watching Football",
-                            Version = 0
+                            Title = "Watching Football"
                         });
                 });
 
@@ -189,12 +166,6 @@ namespace FriendOrganizer.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.ToTable("ProgrammingLanguage");
@@ -203,32 +174,27 @@ namespace FriendOrganizer.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "C#",
-                            Version = 0
+                            Name = "C#"
                         },
                         new
                         {
                             Id = 2,
-                            Name = "Python",
-                            Version = 0
+                            Name = "Python"
                         },
                         new
                         {
                             Id = 3,
-                            Name = "Swift",
-                            Version = 0
+                            Name = "Swift"
                         },
                         new
                         {
                             Id = 4,
-                            Name = "Java",
-                            Version = 0
+                            Name = "Java"
                         },
                         new
                         {
                             Id = 5,
-                            Name = "F#",
-                            Version = 0
+                            Name = "F#"
                         });
                 });
 
