@@ -197,9 +197,9 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
-        protected override void OnDeleteExecuteAsync()
+        protected async override void OnDeleteExecuteAsync()
         {
-            MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
+            MessageDialogResult result = await messageDialogService.ShowOKCancelDialogAsync(
                 $"Do you really want to delete {Meeting.Title}?",
                 "Question");
 
@@ -212,6 +212,8 @@ namespace FriendOrganizer.UI.ViewModel
             else
             {
                 meetingRepository.Remove(Meeting.Model);
+
+                await meetingRepository.SaveAsync();
 
                 HasChanges = meetingRepository.HasChanges();
 

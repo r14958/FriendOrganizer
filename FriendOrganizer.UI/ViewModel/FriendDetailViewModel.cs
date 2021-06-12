@@ -219,6 +219,7 @@ namespace FriendOrganizer.UI.ViewModel
             if (e.PropertyName == nameof(FriendPhoneNumberWrapper.HasErrors))
             {
                 ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                ((DelegateCommand)AddPhoneNumberCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -325,12 +326,12 @@ namespace FriendOrganizer.UI.ViewModel
             // If the targeted friend has been added to any meeting, do not allow the deletion.
             if (await friendRepository.HasMeetingsAsync(friend.Id))
             {
-                messageDialogService.ShowInfoDialog($"{Friend.FullName} cannot be deleted, as this friend is part of at least one meeting.");
+                await messageDialogService.ShowInfoDialogAsync($"{Friend.FullName} cannot be deleted, as this friend is part of at least one meeting.");
                 return;
             }
             
             // Verify that the user really wants to delete the Friend 
-            MessageDialogResult result = messageDialogService.ShowOKCancelDialog(
+            var result = await messageDialogService.ShowOKCancelDialogAsync(
                 $"Do you really want to delete {Friend.FullName}?",
                 "Question");
 

@@ -47,6 +47,9 @@ namespace FriendOrganizer.UI.Wrapper
         protected virtual void SetValue<Tvalue>(Tvalue value, 
             [CallerMemberName] string propertyName = null)
         {
+            // If the property value did not change, do nothing...
+            if (GetValue<Tvalue>(propertyName).Equals(value)) return;
+            
             // Update the property of Model with the new value.
             typeof(T).GetProperty(propertyName).SetValue(Model, value);
 

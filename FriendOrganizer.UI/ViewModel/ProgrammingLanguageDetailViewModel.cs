@@ -80,7 +80,7 @@ namespace FriendOrganizer.UI.ViewModel
 
             if (isReferenced)
             {
-                messageDialogService.ShowInfoDialog($"The language {SelectedProgrammingLanguage.Name} " +
+                await messageDialogService.ShowInfoDialogAsync($"The language {SelectedProgrammingLanguage.Name} " +
                     $"cannot be removed, as it is referenced by at least one friend.");
                 return;
             }

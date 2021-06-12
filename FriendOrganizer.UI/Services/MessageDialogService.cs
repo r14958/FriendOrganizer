@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,24 +14,26 @@ namespace FriendOrganizer.UI.Services
     /// </summary>
     public class MessageDialogService : IMessageDialogService
     {
+        private MetroWindow MetroWindow => (MetroWindow)App.Current.MainWindow;
+
         /// <summary>
-        /// Displays a standard Windows <see cref="MessageBox"/> of type <see cref="MessageBoxButton.OKCancel"/>.
+        /// Displays a <see cref="MessageDialog"/>
         /// </summary>
         /// <param name="text">The message displayed in the dialog box.</param>
         /// <param name="title">The caption of the dialog box.</param>
         /// <returns>The response made by the user as a <see cref="MessageDialogResult"/> value.</returns>
-        public MessageDialogResult ShowOKCancelDialog(string text, string title)
+        public async Task<MessageDialogResult> ShowOKCancelDialogAsync(string title, string text)
         {
-            var result = MessageBox.Show(text, title, MessageBoxButton.OKCancel);
+            var result = await MetroWindow.ShowMessageAsync(title, text, MessageDialogStyle.AffirmativeAndNegative);
 
-            return result == MessageBoxResult.OK
+            return result == MahApps.Metro.Controls.Dialogs.MessageDialogResult.Affirmative
                 ? MessageDialogResult.OK
                 : MessageDialogResult.Cancel;
         }
 
-        public void ShowInfoDialog(string text) 
+        public async Task ShowInfoDialogAsync(string text) 
         {
-            MessageBox.Show(text, "Info", MessageBoxButton.OK);
+            await MetroWindow.ShowMessageAsync("Info", text, MessageDialogStyle.Affirmative);
         }
     }
 

@@ -17,6 +17,7 @@
         <DataTemplate x:Key="NaviItemDataTemplate">
             <!--The button will give us the basic functionality we are looking for (shows content and is clickable).-->
             <Button Content="{Binding DisplayMember}"
+                    FontSize="16"
                                 Command="{Binding OpenDetailViewCommand}">
                 <!--But we don't want a standard looking button, we want to full-customize it.-->
                 <Button.Template>
@@ -55,7 +56,8 @@
                           HorizontalScrollBarVisibility="Auto">
                 <!--ItemsControl present a collection items (without selecting anything like would a ListView).-->
                 <!--It is bound to a collection of Friends, which is actually a collection of NavigationItemViewModels-->
-                <ItemsControl ItemsSource="{Binding Friends}"
+                <ItemsControl Margin="10" 
+                              ItemsSource="{Binding Friends}"
                               ItemContainerStyle="{StaticResource NaviItemContainerStyle}"
                               ItemTemplate="{StaticResource NaviItemDataTemplate}"/>
             </ScrollViewer>
@@ -64,9 +66,10 @@
         <GroupBox Header="Meetings" Grid.Row="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Meetings}"
-                          ItemContainerStyle="{StaticResource NaviItemContainerStyle}"
-                          ItemTemplate="{StaticResource NaviItemDataTemplate}"/>
+                <ItemsControl Margin="10" 
+                              ItemsSource="{Binding Meetings}"
+                              ItemContainerStyle="{StaticResource NaviItemContainerStyle}"
+                              ItemTemplate="{StaticResource NaviItemDataTemplate}"/>
             </ScrollViewer>
         </GroupBox>
     </Grid>

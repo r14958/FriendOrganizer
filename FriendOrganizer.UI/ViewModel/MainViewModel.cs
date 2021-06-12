@@ -110,7 +110,7 @@ namespace FriendOrganizer.UI.ViewModel
                 }
                 catch
                 {
-                    messageDialogService.ShowInfoDialog("Could not load the entity, it may have been deleted " +
+                    await messageDialogService.ShowInfoDialogAsync("Could not load the entity, it may have been deleted " +
                         "in the meantime by another user. The navigation will be refreshed for you.");
 
                     await NavigationViewModel.LoadAsync();
