@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public class NavigationViewModel : ViewModelBase, INavigationViewModel
+    public class NavigationViewModel : NotifyPropChangedBase, INavigationViewModel
     {
         private readonly ILookupDataService<Friend> friendLookupService;
         private readonly ILookupDataService<Meeting> meetingLookupService;

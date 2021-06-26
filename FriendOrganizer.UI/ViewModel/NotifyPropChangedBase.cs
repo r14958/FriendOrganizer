@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 namespace FriendOrganizer.UI.ViewModel
 {
     
-    public class ViewModelBase : IViewModel
+    public class NotifyPropChangedBase : INotifyPropertyChanged, IDisposable
     {
-        public virtual void Dispose() { }
+        public virtual void Dispose() 
+        {
+            GC.SuppressFinalize(this);        
+        }
         
         public event PropertyChangedEventHandler PropertyChanged;
-
+        
         /// <summary>
         /// Raises the property changed event.
         /// </summary>
@@ -27,3 +30,4 @@ namespace FriendOrganizer.UI.ViewModel
 
     }
 }
+ 

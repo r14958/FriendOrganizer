@@ -31,6 +31,79 @@ namespace FriendOrganizer.DataAccess.Migrations
                     b.ToTable("FriendMeeting (Dictionary<string, object>)");
                 });
 
+            modelBuilder.Entity("FriendOrganizer.Domain.Models.Address", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FriendId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StreetNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FriendId")
+                        .IsUnique();
+
+                    b.ToTable("Address");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            City = "Müllheim",
+                            FriendId = 1,
+                            Street = "Elmstreet",
+                            StreetNumber = "12345",
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            City = "Boxford",
+                            FriendId = 2,
+                            Street = "King John Drive",
+                            StreetNumber = "6",
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            City = "Tiengen",
+                            FriendId = 3,
+                            Street = "Hardstreet",
+                            StreetNumber = "5",
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = 4,
+                            City = "Neuenburg",
+                            FriendId = 4,
+                            Street = "Rheinweg",
+                            StreetNumber = "4",
+                            Version = 0
+                        });
+                });
+
             modelBuilder.Entity("FriendOrganizer.Domain.Models.Friend", b =>
                 {
                     b.Property<int>("Id")
@@ -247,6 +320,17 @@ namespace FriendOrganizer.DataAccess.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FriendOrganizer.Domain.Models.Address", b =>
+                {
+                    b.HasOne("FriendOrganizer.Domain.Models.Friend", "Friend")
+                        .WithOne("Address")
+                        .HasForeignKey("FriendOrganizer.Domain.Models.Address", "FriendId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Friend");
+                });
+
             modelBuilder.Entity("FriendOrganizer.Domain.Models.Friend", b =>
                 {
                     b.HasOne("FriendOrganizer.Domain.Models.ProgrammingLanguage", "FavoriteLanguage")
@@ -269,6 +353,8 @@ namespace FriendOrganizer.DataAccess.Migrations
 
             modelBuilder.Entity("FriendOrganizer.Domain.Models.Friend", b =>
                 {
+                    b.Navigation("Address");
+
                     b.Navigation("PhoneNumbers");
                 });
 #pragma warning restore 612, 618

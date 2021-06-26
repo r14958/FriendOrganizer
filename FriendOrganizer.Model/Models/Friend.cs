@@ -12,8 +12,9 @@ namespace FriendOrganizer.Domain.Models
 
         public Friend()
         {
-            PhoneNumbers = new Collection<FriendPhoneNumber>();
+            PhoneNumbers = new List<FriendPhoneNumber>();
             Meetings = new Collection<Meeting>();
+            Address = new();
         }
 
         public string FirstName
@@ -39,13 +40,17 @@ namespace FriendOrganizer.Domain.Models
         }
         public string Email { get; set; }
 
+        public Address Address { get; set; }
+
         public string FullName => FirstName + ' ' + LastName;
 
         public int? FavoriteLanguageId { get; set; }
 
+        public bool IsDeveloper { get; set; }
+
         public ProgrammingLanguage FavoriteLanguage { get; set; }
 
-        public ICollection<FriendPhoneNumber> PhoneNumbers { get; set; }
+        public List<FriendPhoneNumber> PhoneNumbers { get; set; }
 
         public ICollection<Meeting> Meetings { get; set; }
     }

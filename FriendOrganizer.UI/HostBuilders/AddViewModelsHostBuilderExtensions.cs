@@ -28,18 +28,13 @@ namespace FriendOrganizer.UI.HostBuilders
                 //services.AddSingleton<CreateDetailViewModel>();
                 services.AddSingleton<CreateDetailViewModel>(provider => name =>
                 {
-                    switch (name)
+                    return name switch
                     {
-                        case nameof(FriendDetailViewModel):
-                            return provider.GetRequiredService<FriendDetailViewModel>();
-                        case nameof(MeetingDetailViewModel):
-                            return provider.GetRequiredService<MeetingDetailViewModel>();
-                        case nameof(ProgrammingLanguageDetailViewModel):
-                            return provider.GetRequiredService<ProgrammingLanguageDetailViewModel>();
-                        default:
-                            throw new ArgumentException($"Could not locate dependency named {name}.");
-                    }
-
+                        nameof(FriendDetailViewModel) => provider.GetRequiredService<FriendDetailViewModel>(),
+                        nameof(MeetingDetailViewModel) => provider.GetRequiredService<MeetingDetailViewModel>(),
+                        nameof(ProgrammingLanguageDetailViewModel) => provider.GetRequiredService<ProgrammingLanguageDetailViewModel>(),
+                        _ => throw new ArgumentException($"Could not locate dependency named {name}."),
+                    };
                 });
                 
                 services.AddSingleton<IFriendOrganizerViewModelFactory, FriendOrganizerViewModelFactory>();

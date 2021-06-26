@@ -16,7 +16,8 @@ namespace FriendOrganizer.UITests.Wrapper
             friend = new Friend
             {
                 FirstName = "TestFirstName",
-                LastName = "TestLastName"
+                LastName = "TestLastName",
+                Address = new()
             };
         }
         
@@ -36,8 +37,7 @@ namespace FriendOrganizer.UITests.Wrapper
             }
             catch (ArgumentNullException ex)
             {
-                Assert.AreEqual("model", ex.ParamName);
-                throw;
+                Assert.AreEqual("Model", ex.ParamName);
             }
         }
 

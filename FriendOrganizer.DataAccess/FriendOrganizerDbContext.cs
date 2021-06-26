@@ -17,6 +17,8 @@ namespace FriendOrganizer.DataAccess
 
         public DbSet<Meeting> Meetings { get; set; }
 
+        public DbSet<Address> Addresses { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder

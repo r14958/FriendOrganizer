@@ -13,94 +13,14 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <!-- Theme setting -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Blue.xaml" />
-                <ResourceDictionary>
-                    
-                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                        <Setter Property="FontSize" Value="16"/>
-                    </Style>
-                    
-                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                        <Setter Property="FontSize" Value="20"/>
-                    </Style>
-
-                    <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
-                        <Setter Property="Foreground" Value="#CCCCCC"/>
-                    </Style>
-
-                    <!--<Style TargetType="sf:DateTimeEdit">
-                        <Setter Property="Background" Value="#222222"/>
-                        <Setter Property="Foreground" Value="White"/>
-                    </Style>-->
-                    
-                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                        <Setter Property="FontSize" Value="20"/>
-                        <Style.Triggers>
-                            <Trigger Property="Validation.HasError" Value="True">
-                                <Setter Property="Validation.ErrorTemplate">
-                                    <Setter.Value>
-                                        <ControlTemplate>
-                                            <StackPanel>
-                                                <AdornedElementPlaceholder x:Name="PlaceHolder"/>
-                                                <!--This is a placeholder for the TextBox-->
-                                                <!--Because we are in a StackPanel, this TextBlock will appear below the TextBox-->
-                                                <TextBlock Height="50" FontSize="12" Foreground="White" Text="{Binding ElementName=PlaceHolder,
-                                            Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
-                                            </StackPanel>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="Background" Value="DarkRed" />
-                                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                                Path=(Validation.Errors)[0].ErrorContent}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-
-                    <Style x:Key="DataGridColumnStyle" TargetType="TextBlock">
-                        <Style.Triggers>
-                            <Trigger Property="Validation.HasError" Value="True">
-                                <Setter Property="Background" Value="DarkRed" />
-                                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                                Path=(Validation.Errors)[0].ErrorContent}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-
-                    <Style x:Key="DataGridEditingColumnStyle" TargetType="TextBox">
-                        <Style.Triggers>
-                            <Trigger Property="Validation.HasError" Value="True">
-                                <Setter Property="Background" Value="DarkRed" />
-                                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                                Path=(Validation.Errors)[0].ErrorContent}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-
-                    <Style TargetType="sf:DateTimeEdit">
-                        <Setter Property="Background" Value="#222222"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Style.Triggers>
-                            <Trigger Property="Validation.HasError" Value="True">
-                                <Setter Property="Validation.ErrorTemplate">
-                                    <Setter.Value>
-                                        <ControlTemplate>
-                                            <StackPanel>
-                                                <AdornedElementPlaceholder x:Name="PlaceHolder"/>
-                                                <!--This is a placeholder for the TextBox-->
-                                                <!--Because we are in a StackPanel, this TextBlock will appear below the TextBox-->
-                                                <TextBlock Height="50" FontSize="12" Foreground="Red" Text="{Binding ElementName=PlaceHolder,
-                                        Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
-                                            </StackPanel>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="Background" Value="LightPink" />
-                                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                            Path=(Validation.Errors)[0].ErrorContent}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ResourceDictionary>
+                <ResourceDictionary Source="Styles/Brushes.xaml"/>
+                <ResourceDictionary Source="Styles/Button.xaml"/>
+                <ResourceDictionary Source="Styles/ComboBox.xaml"/>
+                <ResourceDictionary Source="Styles/DataGrid.xaml"/>
+                <ResourceDictionary Source="Styles/Label.xaml"/>
+                <ResourceDictionary Source="Styles/sfDateTimeEdit.xaml"/>
+                <ResourceDictionary Source="Styles/TabControl.xaml"/>
+                <ResourceDictionary Source="Styles/TextBox.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

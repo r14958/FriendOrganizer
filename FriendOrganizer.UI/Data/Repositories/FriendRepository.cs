@@ -14,6 +14,7 @@ namespace FriendOrganizer.UI.Data.Repositories
         {
             return await context.Friends
                 .Include(f => f.PhoneNumbers)
+                .Include(f => f.Address)
                 .SingleAsync(f => f.Id == friendId);
         }
 

@@ -10,9 +10,21 @@ namespace FriendOrganizer.UI.Wrapper
 {
     public class MeetingWrapper : ModelWrapper<Meeting>
     {
-        public MeetingWrapper(Meeting model, IValidator<Meeting> validator) : base(model, validator)
+        private readonly IValidator<Friend> friendValidator;
+
+        public MeetingWrapper(Meeting model, 
+            IValidator<Meeting> meetingValidator = null,
+            IValidator<Friend> friendValidator = null) : base(model, meetingValidator)
         {
+            InitializeCollectionProperties(model);
+            //InitializeComplexProperties(model);
+            this.friendValidator = friendValidator;
         }
+
+        //private void InitializeComplexProperties(Meeting model)
+        //{
+        //    DateFrom = new DateFromWrapper((DateTimeOffset)(model.DateFrom));
+        //}
 
         public int Id { get { return Model.Id; } }
 
@@ -22,6 +34,10 @@ namespace FriendOrganizer.UI.Wrapper
             set { SetValue(value); }
         }
 
+        public string TitleOriginalValue => GetOriginalValue<string>(nameof(Title));
+
+
+        public bool TitleIsChanged => GetIsChanged(nameof(Title));
 
         public DateTimeOffset DateFrom
         {
@@ -36,6 +52,10 @@ namespace FriendOrganizer.UI.Wrapper
             }
         }
 
+        public DateTimeOffset DateFromOriginalValue => GetOriginalValue<DateTimeOffset>(nameof(DateFrom));
+
+        public bool DateFromIsChanged => GetIsChanged(nameof(DateFrom));
+
         public DateTimeOffset DateTo
         {
             get { return FixedDtoValue(GetValue<DateTimeOffset>()); }
@@ -48,6 +68,10 @@ namespace FriendOrganizer.UI.Wrapper
                 }
             }
         }
+
+        public DateTimeOffset DateToOriginalValue => GetOriginalValue<DateTimeOffset>(nameof(DateTo));
+
+        public bool DateToIsChanged => GetIsChanged(nameof(DateTo));
 
         private static DateTimeOffset FixedDtoValue(DateTimeOffset input)
         {
@@ -63,8 +87,24 @@ namespace FriendOrganizer.UI.Wrapper
                 return new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, 30, 0, now.Offset); 
             }
 
-            return new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour + 1, 0, 0, now.Offset);
+            return new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, 0, 0, now.Offset).AddHours(1);
 
+        }
+
+        public ChangeTrackingCollection<FriendWrapper> AddedFriends { get; private set; }
+
+        private void InitializeCollectionProperties(Meeting model)
+        {
+            if (model.Friends == null)
+            {
+                throw new ArgumentException("Added Friends cannot be null.");
+            }
+            AddedFriends = new ChangeTrackingCollection<FriendWrapper>(
+               model.Friends.Select(f => new FriendWrapper(f, friendValidator)));
+            
+
+            // Using a method in the base class, register the two model and wrapper collections to keep them in sync.
+            RegisterCollection(AddedFriends, model.Friends.ToList());
         }
     }
 }

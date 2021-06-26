@@ -10,6 +10,6 @@ namespace FriendOrganizer.UI.ViewModel.Factory
     
     public interface IFriendOrganizerViewModelFactory
     {
-        ViewModelBase CreateViewModel(ViewType viewType);
+        NotifyPropChangedBase CreateViewModel(ViewType viewType);
     }
 }

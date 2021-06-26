@@ -8,23 +8,23 @@ namespace FriendOrganizer.DataAccess.Migrations
         {
             migrationBuilder.InsertData(
                 table: "Friend",
-                columns: new[] { "Id", "Email", "FirstName", "LastName" },
-                values: new object[] { 1, null, "Thomas", "Huber" });
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "Address" },
+                values: new object[] { 1, null, "Thomas", "Huber", null });
 
             migrationBuilder.InsertData(
                 table: "Friend",
-                columns: new[] { "Id", "Email", "FirstName", "LastName" },
-                values: new object[] { 2, null, "Jeff", "Klein" });
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "Address" },
+                values: new object[] { 2, null, "Jeff", "Klein", null });
 
             migrationBuilder.InsertData(
                 table: "Friend",
-                columns: new[] { "Id", "Email", "FirstName", "LastName" },
-                values: new object[] { 3, null, "Andreas", "Boehler" });
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "Address" },
+                values: new object[] { 3, null, "Andreas", "Boehler", null });
 
             migrationBuilder.InsertData(
                 table: "Friend",
-                columns: new[] { "Id", "Email", "FirstName", "LastName" },
-                values: new object[] { 4, null, "Chrissi", "Egin" });
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "Address" },
+                values: new object[] { 4, null, "Chrissi", "Egin", null });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

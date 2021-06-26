@@ -14,8 +14,6 @@ namespace FriendOrganizer.UI.Validator
         {
             RuleFor(m => m.Title).NotEmpty().WithMessage("A title is required.")
                 .MaximumLength(50).WithMessage("The meeting title cannot exceed 50 characters.");
-        }
-
-      
+        }    
     }
 }

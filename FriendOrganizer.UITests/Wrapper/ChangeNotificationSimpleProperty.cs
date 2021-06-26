@@ -3,6 +3,7 @@ using FriendOrganizer.UI.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,9 @@ namespace FriendOrganizer.UITests.Wrapper
             friend = new Friend
             {
                 FirstName = "TestFirstName",
-                LastName = "TestLastName"
+                LastName = "TestLastName",
+                Address = new(),
+                PhoneNumbers = new List<FriendPhoneNumber>()
             };
         }
 
@@ -31,7 +34,10 @@ namespace FriendOrganizer.UITests.Wrapper
             var wrapper = new FriendWrapper(friend);
             wrapper.PropertyChanged += (s, e) => 
             {
-                fired = e.PropertyName == "FirstName";
+                if (e.PropertyName == nameof(wrapper.FirstName))
+                {
+                    fired = true;
+                }
             };
             // Change the value of FirstName.
             wrapper.FirstName = "NewTestFirstName";

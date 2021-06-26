@@ -54,10 +54,11 @@ namespace FriendOrganizer.UI
             // If the target DB does not exist, create it and run migrations.
             // If the DB does exists, run any needed migrations.
             // If the DB exists and is current with all migrations, do nothing.
-            using(FriendOrganizerDbContext context = contextFactory.CreateDbContext())
-            {
-                context.Database.Migrate();
-            }
+            //using(FriendOrganizerDbContext context = contextFactory.CreateDbContext())
+            //{
+                    FriendOrganizerDbContext context = contextFactory.CreateDbContext();
+                    context.Database.Migrate();
+            //}
 
             // Get an instance of the MainWindow from our hosting service and show it.
             MainWindow mainWindow = host.Services.GetRequiredService<MainWindow>();

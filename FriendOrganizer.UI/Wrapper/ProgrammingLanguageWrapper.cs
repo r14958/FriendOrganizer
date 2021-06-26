@@ -23,5 +23,9 @@ namespace FriendOrganizer.UI.Wrapper
             get { return GetValue<string>(); }
             set { SetValue(value); }
         }
+
+        public string NameOriginalValue => GetOriginalValue<string>(nameof(Name));
+
+        public bool NameIsChanged => GetIsChanged(nameof(Name));
     }
 }

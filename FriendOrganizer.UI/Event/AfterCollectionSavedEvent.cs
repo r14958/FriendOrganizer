@@ -5,7 +5,7 @@ using Prism.Events;
 namespace FriendOrganizer.UI.Event
 {
     /// <summary>
-    /// Public event called after a subclass of <see cref="ViewModelBase"/> saves a collection of a subclass of 
+    /// Public event called after a subclass of <see cref="NotifyPropChangedBase"/> saves a collection of a subclass of 
     /// <see cref="EntityBase"/>.  Carries <see cref="AfterCollectionSavedEventArgs"/>
     /// </summary>
     public class AfterCollectionSavedEvent : PubSubEvent<AfterCollectionSavedEventArgs> { }

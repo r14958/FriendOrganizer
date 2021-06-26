@@ -1,16 +1,14 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Prism.Commands;
 using Prism.Events;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -90,7 +88,6 @@ namespace FriendOrganizer.UI.ViewModel
                 ((DelegateCommand)RemovePhoneNumberCommand).RaiseCanExecuteChanged();
             }
         }
-            
 
         public ICommand AddPhoneNumberCommand { get; }
         public ICommand RemovePhoneNumberCommand { get; }
@@ -120,6 +117,81 @@ namespace FriendOrganizer.UI.ViewModel
 
             await LoadProgrammingLanguagesLookupAsync();
         }
+        
+        protected override bool OnSaveCanExecute()
+        {
+            // Can only execute if the wrapped Entity is not null, does not have errors,
+            // and has been changed since loaded.
+            return Friend != null
+                && !Friend.HasErrors
+                && PhoneNumbers.All(pn => !pn.HasErrors)
+                && Friend.IsChanged;
+        }
+
+        protected override bool OnSaveAllDetailCanExecute()
+        {
+            return NotifyDataErrorInfoBase.HasAnyChanges;
+        }
+
+        protected override async void OnSaveExecuteAsync()
+        {
+            await SaveWithOptimisticConcurrencyAsync(friendRepository.SaveAsync,
+                () =>
+                {
+                    //Resync the VM's Id to the Friend's Id.
+                    Id = Friend.Id;
+
+                    SetTitle();
+
+                    Friend.AcceptChanges();
+
+                    // Raise (publish) the AfterFriendSavedEvent, passing on the Id of the
+                    // updated friend, and its (perhaps changed) DisplayMember.
+                    base.RaiseDetailSavedEvent(Friend.Id, Friend.FullName);
+                });
+        }
+
+        protected override bool OnDeleteCanExecute()
+        {
+            return Friend != null;
+        }
+
+        protected override async void OnDeleteExecuteAsync()
+        {
+            // If the targeted friend has been added to any meeting, do not allow the deletion.
+            if (await friendRepository.HasMeetingsAsync(friend.Id))
+            {
+                await messageDialogService.ShowInfoDialogAsync($"{Friend.FullName} cannot be deleted, as this friend is part of at least one meeting.");
+                return;
+            }
+
+            // Verify that the user really wants to delete the Friend 
+            var result = await messageDialogService.ShowOKCancelDialogAsync(
+                $"Do you really want to delete {Friend.FullName}?",
+                "Question");
+
+            // If they approve...
+            if (result == MessageDialogResult.OK)
+            {
+                friendRepository.Remove(Friend.Model);
+
+                await friendRepository.SaveAsync();
+
+                base.RaiseDetailDeletedEvent(Friend.Id);
+            }
+        }
+
+        protected override bool OnResetCanExecute()
+        {
+            return Friend.IsChanged;
+        }
+
+        protected override void OnResetExecuteAsync()
+        {
+            Friend.RejectChanges();
+            SetTitle();
+            Friend.FirstName += string.Empty;
+        }
 
         private async Task<Friend> CreateNewFriendAsync()
         {
@@ -133,24 +205,22 @@ namespace FriendOrganizer.UI.ViewModel
         }
 
         /// <summary>
-        /// Initializes a <see cref="FriendOrganizer.Model.Friend"/> into a <see cref="FriendWrapper"/> <see cref="Friend"/>,
+        /// Initializes a <see cref="FriendOrganizer.Model.Friend"/> into a <see cref="Wrapper.FriendWrapper"/> <see cref="Friend"/>,
         /// including data validation and change detection.
         /// </summary>
         /// <param name="friend">The <see cref="FriendOrganizer.Model.Friend"/> that is being wrapped for the <see cref="FriendDetailViewModel"/>.</param>
         private void InitializeFriendWrapper(Friend friend)
         {
-            Friend = new FriendWrapper(friend, friendValidator);
+            Friend = new FriendWrapper(friend, friendValidator, phoneNumberValidator);
 
             // Register this method to run whenever a Friend property changes. It will not run 
             // during the Load.
             Friend.PropertyChanged += (s, e) =>
             {
-                // if no changes have been detected yet...
-                if (!HasChanges)
+                if (e.PropertyName == nameof(Friend.IsChanged))
                 {
-                    // Check to see if the entity in the repository has changed.
-                    // So, once True, this will not be checked again until the entity is reloaded.
-                    HasChanges = friendRepository.HasChanges();
+                    HasChanges = Friend.IsChanged;
+                    base.InvalidateControls();
                 }
 
                 // Update VM Title if either the Friend's FirstName or LastName has changed.
@@ -163,14 +233,13 @@ namespace FriendOrganizer.UI.ViewModel
                 // The HasErrors property of the Entity has changed...
                 if (e.PropertyName == nameof(Friend.HasErrors))
                 {
-                    // Raise the CanExecute changed event for the save command
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                    // Raise the CanExecute changed event for all inherited delegate commands.
+                    base.InvalidateControls();
                 }
             };
 
             // Now that the entity has been loaded, raise the CanExecute changed event of the SaveCommand.
-            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
-            ((DelegateCommand)DeleteCommand).RaiseCanExecuteChanged();
+            base.InvalidateControls();
         }
         
         private void TriggerValidationIfNew(Friend friend)
@@ -180,7 +249,12 @@ namespace FriendOrganizer.UI.ViewModel
             {
                 // Trick to trigger validation to show user what needs to be filled out.
                 Friend.FirstName = string.Empty;
+
+                // Tell the FriendWrapper's change tracker to ignore the above change,
+                // so the new, blank wrapper is not treated as if it has been changed by the user.
+                Friend.IgnoreChange(nameof(Friend.FirstName));
             }
+            SetTitle();
         }
         
         private void InitializeFriendPhoneNumbers(Friend friend)
@@ -212,17 +286,13 @@ namespace FriendOrganizer.UI.ViewModel
 
         private void FriendPhoneNumberWrapper_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (!HasChanges)
-            {
-                HasChanges = friendRepository.HasChanges();
-            }
+            
             if (e.PropertyName == nameof(FriendPhoneNumberWrapper.HasErrors))
             {
-                ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                base.InvalidateControls();
                 ((DelegateCommand)AddPhoneNumberCommand).RaiseCanExecuteChanged();
             }
         }
-
 
         private void SetTitle()
         {
@@ -236,32 +306,20 @@ namespace FriendOrganizer.UI.ViewModel
 
         private void OnRemovePhoneNumberExecute()
         {
-            // Remove the wrapped phone number's event handler
-            SelectedPhoneNumber.PropertyChanged -= FriendPhoneNumberWrapper_PropertyChanged;
-            // Remove the phone number entity from the wrapped Friend entity's collection.
-            Friend.Model.PhoneNumbers.Remove(SelectedPhoneNumber.Model);
-            // Remove the wrapped phone number from the public collection.
-            PhoneNumbers.Remove(SelectedPhoneNumber);
-            // Null out the wrapped phone entity.
-            SelectedPhoneNumber = null;
-            // Re-sync the view model's HasChanges with the repository.
-            HasChanges = friendRepository.HasChanges();
-            // Recheck the CanExecute property of the save command.
-            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            Friend.PhoneNumbers.Remove(SelectedPhoneNumber);
+            ((DelegateCommand)RemovePhoneNumberCommand).RaiseCanExecuteChanged();
         }
 
         private void OnAddPhoneNumberExecute()
         {
             // Create a new wrapper with a new (empty) phone number entity.
-            var newNumber = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new FriendPhoneNumberValidator());
-            // Add a property changed event handler to it.
-            newNumber.PropertyChanged += FriendPhoneNumberWrapper_PropertyChanged;
-            // Add the wrapper to the public collection
-            PhoneNumbers.Add(newNumber);
-            // Add the FriendPhoneNumber entity to the PhoneNumbers collection of the wrapped Friend entity.
-            Friend.Model.PhoneNumbers.Add(newNumber.Model);
+            var newNumberWrapper = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new FriendPhoneNumberValidator());
+            
+            // Add the empty phone number wrapper to the collection in the Friend wrapper.
+            Friend.PhoneNumbers.Add(newNumberWrapper);
+
             // Trigger Validation
-            newNumber.Number = "";
+            newNumberWrapper.Number = "";
         }
 
         /// <summary>
@@ -280,79 +338,11 @@ namespace FriendOrganizer.UI.ViewModel
 
             // Load the real language selections from the LookupDataService
             var lookup = await programmingLanguageLookupDataService.GetLookupAsync();
+
             foreach (var lookupItem in lookup)
             {
                 ProgrammingLanguages.Add(lookupItem);
             }
         }
-
-        protected override bool OnSaveCanExecute()
-        {
-            // Can only execute if the wrapped Entity is not null, does not have errors,
-            // and has been changed since loaded.
-            return Friend != null 
-                && !Friend.HasErrors
-                && PhoneNumbers.All(pn => !pn.HasErrors)
-                && HasChanges;
-        }
-
-        protected override async void OnSaveExecuteAsync()
-        {
-            await SaveWithOptimisticConcurrencyAsync(friendRepository.SaveAsync,
-                () =>
-                {
-                    //Resync the VM's Id to the Friend's Id.
-                    Id = Friend.Id;
-
-                    SetTitle();
-
-                    // Once the Friend entity has been saved to the DB, update
-                    // HasChanges property for the view model.
-                    HasChanges = friendRepository.HasChanges();
-
-                    // Raise (publish) the AfterFriendSavedEvent, passing on the Id of the
-                    // updated friend, and its (perhaps changed) DisplayMember.
-                    base.RaiseDetailSavedEvent(Friend.Id, Friend.FullName);
-                });
-        }
-
-        protected override bool OnDeleteCanExecute()
-        {
-            return Friend != null;
-        }
-        
-        protected override async void OnDeleteExecuteAsync()
-        {
-            // If the targeted friend has been added to any meeting, do not allow the deletion.
-            if (await friendRepository.HasMeetingsAsync(friend.Id))
-            {
-                await messageDialogService.ShowInfoDialogAsync($"{Friend.FullName} cannot be deleted, as this friend is part of at least one meeting.");
-                return;
-            }
-            
-            // Verify that the user really wants to delete the Friend 
-            var result = await messageDialogService.ShowOKCancelDialogAsync(
-                $"Do you really want to delete {Friend.FullName}?",
-                "Question");
-
-            // If they approve...
-            if (result == MessageDialogResult.OK)
-            {
-                friendRepository.Remove(Friend.Model);
-
-                await friendRepository.SaveAsync();
-
-                HasChanges = friendRepository.HasChanges();
-
-                base.RaiseDetailDeletedEvent(Friend.Id);
-            }
-        }
-
-        /// <summary>
-        /// If the <see cref="Friend"/> entity was just created, trigger validation to help the user fill out the required information.
-        /// </summary>
-        /// <param name="friend">The <see cref="Friend"/> entity being edited or created.</param>
-
-
     }
 }

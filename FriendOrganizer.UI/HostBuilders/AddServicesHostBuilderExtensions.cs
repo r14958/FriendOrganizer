@@ -1,4 +1,5 @@
 ﻿using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ namespace FriendOrganizer.UI.HostBuilders
             {
                 services.AddSingleton<IMessageDialogService, MessageDialogService>();
                 services.AddSingleton<IEventAggregator, EventAggregator>();
+                services.AddSingleton<IApplicationCommands, ApplicationCommands>();
 
             });
 

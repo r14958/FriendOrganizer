@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Commands;
+using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
@@ -19,27 +21,216 @@ namespace FriendOrganizer.UI.ViewModel
     {
         private readonly IMeetingRepository meetingRepository;
         private readonly IValidator<Meeting> meetingValidator;
+        private readonly IValidator<Friend> friendValidator;
+        private readonly ILookupDataService<Friend> friendLookupDataService;
         private MeetingWrapper meeting;
-        private Friend selectedAddedFriend;
-        private Friend selectedAvailableFriend;
+        private FriendWrapper selectedAddedFriend;
+        private FriendWrapper selectedAvailableFriend;
 
         public MeetingDetailViewModel(IMeetingRepository meetingRepository,
             IEventAggregator eventAggregator,
             IMessageDialogService messageDialogService,
-            IValidator<Meeting> meetingValidator) : base(eventAggregator, messageDialogService)
+            IValidator<Meeting> meetingValidator,
+            IValidator<Friend> friendValidator,
+            ILookupDataService<Friend> friendLookupDataService) : base(eventAggregator, messageDialogService)
         {
             this.meetingRepository = meetingRepository;
             this.meetingValidator = meetingValidator;
-
+            this.friendValidator = friendValidator;
+            this.friendLookupDataService = friendLookupDataService;
             eventAggregator.GetEvent<AfterDetailSavedEvent>().Subscribe(OnDetailSaved);
             eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnDetailDeleted);
 
 
-            AddedFriends = new ObservableCollection<Friend>();
-            AvailableFriends = new ObservableCollection<Friend>();
+            AddedFriends = new ObservableCollection<FriendWrapper>();
+            AvailableFriends = new ObservableCollection<FriendWrapper>();
 
             AddFriendCommand = new DelegateCommand(OnAddFriendExecute, OnAddFriendCanExecute);
             RemoveFriendCommand = new DelegateCommand(OnRemoveFriendExecute, OnRemoveFriendCanExecute);
+        }
+
+        public MeetingWrapper Meeting
+        {
+            get { return meeting; }
+            private set
+            {
+                meeting = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<FriendWrapper> AddedFriends { get; set; }
+        public ObservableCollection<FriendWrapper> AvailableFriends { get; set; }
+
+        public FriendWrapper SelectedAddedFriend
+        {
+            get { return selectedAddedFriend; }
+            set
+            {
+                selectedAddedFriend = value;
+                OnPropertyChanged();
+                // When an AddedFriend is selected, check to see if it can be removed.
+                ((DelegateCommand)RemoveFriendCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        public FriendWrapper SelectedAvailableFriend
+        {
+            get { return selectedAvailableFriend; }
+            set
+            {
+                selectedAvailableFriend = value;
+                OnPropertyChanged();
+                // When an AvalaibleFriend is selected, check to see if it can be added.
+                ((DelegateCommand)AddFriendCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        public ICommand AddFriendCommand { get; }
+        public ICommand RemoveFriendCommand { get; }
+
+        public override async Task LoadAsync(int id)
+        {
+            Meeting meeting = id > 0
+                ? await meetingRepository.GetByIdAsync(id)
+                : await CreateNewMeetingAsync();
+
+            // Set the ViewModel's Id to the Meeting's Id.
+            Id = meeting.Id;
+
+            InitializeMeetingWrapper(meeting);
+
+            // Set the Title property of the ViewModel.
+            SetTitle();
+
+            TriggerValidationIfNew(meeting);
+
+            await InitializeFriendPickListAsync(meeting);
+
+            // Load the friends for the picklist.
+            //await SetupPickList();
+
+        }
+
+        private async Task InitializeFriendPickListAsync(Meeting meeting)
+        {
+            foreach (var addedFriend in AddedFriends)
+            {
+                addedFriend.PropertyChanged -= AddedFriendPropertyChanged;
+            }
+           
+            foreach (var availableFriend in AvailableFriends)
+            {
+                availableFriend.PropertyChanged -= AvailableFriendPropertyChanged;
+            }
+
+            AddedFriends.Clear();
+            AvailableFriends.Clear();
+
+
+            List<Friend> allFriends = await meetingRepository.GetAllFriendsAsync();
+
+            //Sort the list by Friend FullName
+            allFriends = allFriends.OrderBy(f => f.FullName).ToList();
+
+            foreach (var friend in allFriends)
+            {
+                var wrapper = new FriendWrapper(friend, friendValidator);
+                if (meeting.Friends.Contains(friend))
+                {
+                    wrapper.PropertyChanged += AddedFriendPropertyChanged;
+                    AddedFriends.Add(wrapper);
+                }
+                else
+                {
+                    wrapper.PropertyChanged += AvailableFriendPropertyChanged;
+                    AvailableFriends.Add(wrapper);
+                }
+            }
+        }
+
+        private void AddedFriendPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FriendWrapper.IsChanged)  || e.PropertyName == nameof(FriendWrapper.HasErrors))
+            {
+                base.InvalidateControls();
+                ((DelegateCommand)AddFriendCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        private void AvailableFriendPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FriendWrapper.IsChanged) || e.PropertyName == nameof(FriendWrapper.HasErrors))
+            {
+                base.InvalidateControls();
+                ((DelegateCommand)RemoveFriendCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        protected async override void OnDeleteExecuteAsync()
+        {
+            MessageDialogResult result = await messageDialogService.ShowOKCancelDialogAsync(
+                $"Do you really want to delete {Meeting.Title}?",
+                "Question");
+
+            // If they cancel...
+            if (result == MessageDialogResult.Cancel)
+            {
+                // ...do nothing.
+                return;
+            }
+            else
+            {
+                meetingRepository.Remove(Meeting.Model);
+
+                await meetingRepository.SaveAsync();
+
+                //HasChanges = meetingRepository.HasChanges();
+
+                base.RaiseDetailDeletedEvent(Meeting.Id);
+            }
+        }
+
+        protected override bool OnDeleteCanExecute()
+        {
+            return Meeting != null;
+        }
+
+        protected override bool OnSaveCanExecute()
+        {
+            return Meeting != null
+                && !Meeting.HasErrors
+                && Meeting.IsChanged;
+        }
+
+        protected override async void OnSaveExecuteAsync()
+        {
+            await SaveWithOptimisticConcurrencyAsync(meetingRepository.SaveAsync,
+               () =>
+               {
+                   //Resync the ViewModel's ID to the meeting's ID.
+                   Id = Meeting.Id;
+
+                   SetTitle();
+
+                   Meeting.AcceptChanges();
+
+                   base.RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
+               });
+        }
+
+        protected override async void OnResetExecuteAsync()
+        {
+            Meeting.RejectChanges();
+            SetTitle();
+            Meeting.Title += string.Empty;
+            await InitializeFriendPickListAsync(Meeting.Model);
+            base.InvalidateControls();
+        }
+
+        protected override bool OnResetCanExecute()
+        {
+            return Meeting.IsChanged;
         }
 
         private async void OnDetailDeleted(AfterDetailDeletedEventArgs args)
@@ -71,14 +262,12 @@ namespace FriendOrganizer.UI.ViewModel
 
         private void OnAddFriendExecute()
         {
-            var friendToAdd = SelectedAvailableFriend;
             
-            Meeting.Model.Friends.Add(friendToAdd);
-            AddedFriends.Add(friendToAdd);
-            AvailableFriends.Remove(friendToAdd); 
+            //Meeting.Model.Friends.Add(SelectedAvailableFriend.Model);
+            Meeting.AddedFriends.Add(SelectedAvailableFriend);
+            AvailableFriends.Remove(SelectedAvailableFriend); 
            
-            HasChanges = meetingRepository.HasChanges();
-            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            base.InvalidateControls();
         }
 
         private bool OnAddFriendCanExecute()
@@ -88,81 +277,15 @@ namespace FriendOrganizer.UI.ViewModel
 
         private void OnRemoveFriendExecute()
         {
-            var friendToRemove = SelectedAddedFriend;
-            
-            Meeting.Model.Friends.Remove(friendToRemove);
-            AddedFriends.Remove(friendToRemove);
-            AvailableFriends.Add(friendToRemove); 
-            
-            HasChanges = meetingRepository.HasChanges();
-            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            AvailableFriends.Add(SelectedAddedFriend);
+            Meeting.AddedFriends.Remove(SelectedAddedFriend);
+
+            base.InvalidateControls();
         }
 
         private bool OnRemoveFriendCanExecute()
         {
             return SelectedAddedFriend != null;
-
-        }
-
-        public MeetingWrapper Meeting
-        {
-            get { return meeting; }
-            private set 
-            { 
-                meeting = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Friend SelectedAddedFriend
-        {
-            get { return selectedAddedFriend; }
-            set 
-            { 
-                selectedAddedFriend = value;
-                OnPropertyChanged();
-                // When an AddedFriend is selected, check to see if it can be removed.
-                ((DelegateCommand)RemoveFriendCommand).RaiseCanExecuteChanged();
-            }
-        }
-
-        public Friend SelectedAvailableFriend
-        {
-            get { return selectedAvailableFriend; }
-            set 
-            { 
-                selectedAvailableFriend = value;
-                OnPropertyChanged();
-                // When an AvalaibleFriend is selected, check to see if it can be added.
-                ((DelegateCommand)AddFriendCommand).RaiseCanExecuteChanged();
-            }
-        }
-
-        public ObservableCollection<Friend> AddedFriends { get; set; }
-        public ObservableCollection<Friend> AvailableFriends { get; set; }
-
-        public ICommand AddFriendCommand { get; }
-        public ICommand RemoveFriendCommand { get; }
-
-        public override async Task LoadAsync(int id)
-        {
-            Meeting meeting = id > 0
-                ? await meetingRepository.GetByIdAsync(id)
-                : await CreateNewMeetingAsync();
-
-            // Set the ViewModel's Id to the Meeting's Id.
-            Id = meeting.Id;
-
-            InitializeMeetingWrapper(meeting);
-
-            TriggerValidationIfNew(meeting);
-
-            // Set the Title property of the ViewModel.
-            SetTitle();
-
-            // Load the friends for the picklist.
-
-            await SetupPickList();
 
         }
 
@@ -178,92 +301,38 @@ namespace FriendOrganizer.UI.ViewModel
             List<Friend> allFriends = await meetingRepository.GetAllFriendsAsync();
 
             //Sort the list by Friend FullName
-            allFriends = allFriends.OrderBy(f => f.FullName).ToList();
+            var allFriendWrappers = allFriends.OrderBy(f => f.FullName).Select(f => new FriendWrapper(f, friendValidator));
 
             // Clear the two public observable collections.
             AddedFriends.Clear();
             AvailableFriends.Clear();
 
-            foreach (var friend in allFriends)
+
+            foreach (var friendWrapper in allFriendWrappers)
             {
-                if (Meeting.Model.Friends.Contains(friend))
+                if (Meeting.Model.Friends.Contains(friendWrapper.Model))
                 {
-                    AddedFriends.Add(friend);
+                    AddedFriends.Add(friendWrapper);
                 }
                 else
                 {
-                    AvailableFriends.Add(friend);
+                    AvailableFriends.Add(friendWrapper);
                 }
             }
-        }
-
-        protected async override void OnDeleteExecuteAsync()
-        {
-            MessageDialogResult result = await messageDialogService.ShowOKCancelDialogAsync(
-                $"Do you really want to delete {Meeting.Title}?",
-                "Question");
-
-            // If they cancel...
-            if (result == MessageDialogResult.Cancel)
-            {
-                // ...do nothing.
-                return;
-            }
-            else
-            {
-                meetingRepository.Remove(Meeting.Model);
-
-                await meetingRepository.SaveAsync();
-
-                HasChanges = meetingRepository.HasChanges();
-
-                base.RaiseDetailDeletedEvent(Meeting.Id);
-            }
-        }
-
-        protected override bool OnDeleteCanExecute()
-        {
-            return Meeting != null;
-        }
-
-        protected override bool OnSaveCanExecute()
-        {
-            return Meeting != null
-                && !Meeting.HasErrors
-                && HasChanges;
-        }
-
-        protected override async void OnSaveExecuteAsync()
-        {
-            await SaveWithOptimisticConcurrencyAsync(meetingRepository.SaveAsync,
-               () =>
-               {
-                   //Resync the ViewModel's ID to the meeting's ID.
-                   Id = Meeting.Id;
-
-                   SetTitle();
-
-                   // Resync the VM's HasChanges with the repository.
-                   HasChanges = meetingRepository.HasChanges();
-
-                   base.RaiseDetailSavedEvent(Meeting.Id, Meeting.Title);
-               });
         }
        
         private void InitializeMeetingWrapper(Meeting meeting)
         {
-            Meeting = new MeetingWrapper(meeting, meetingValidator);
+            Meeting = new MeetingWrapper(meeting, meetingValidator, friendValidator);
 
             Meeting.PropertyChanged += (s, e) =>
             {
-                // if no changes have been detected yet...
-                if (!HasChanges)
+                if (e.PropertyName == nameof(Meeting.IsChanged))
                 {
-                    // Check to see if the entity in the repository has changed.
-                    // So, once True, this will not be checked again until the entity is reloaded.
-                    HasChanges = meetingRepository.HasChanges();
+                    HasChanges = Meeting.IsChanged;
+                    base.InvalidateControls();
                 }
-
+                
                 // Update VM Title if the Meeting's Title has changed.
                 if (e.PropertyName == nameof(Meeting.Title))
                 {
@@ -273,8 +342,7 @@ namespace FriendOrganizer.UI.ViewModel
                 // The HasErrors property of the Entity has changed...
                 if (e.PropertyName == nameof(Meeting.HasErrors))
                 {
-                    // Raise the CanExecute changed event for the save command
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                    base.InvalidateControls();
                 }
             };
 
@@ -291,6 +359,10 @@ namespace FriendOrganizer.UI.ViewModel
             {
                 // Trick to trigger validation to show user what needs to be filled out.
                 Meeting.Title = string.Empty;
+
+                // Tell the MeetingWrapper's change tracker to ignore the above change,
+                // so the new, blank wrapper is not treated as if it has been changed by the user.
+                Meeting.IgnoreChange(nameof(Meeting.Title));
             }
         }
 

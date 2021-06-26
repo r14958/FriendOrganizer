@@ -12,7 +12,7 @@
              xmlns:model="clr-namespace:FriendOrganizer.Domain.Models;assembly=FriendOrganizer.Domain"
              xmlns:local="clr-namespace:FriendOrganizer.UI.View"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="300">
+             d:DesignHeight="450" d:DesignWidth="800">
     
     <Grid>
         <Grid.RowDefinitions>
@@ -73,7 +73,8 @@
             </Grid.ColumnDefinitions>
 
             <Label Content="Added Friends"/>
-            <ListView Grid.Row="1" SelectionMode="Extended" ItemsSource="{Binding AddedFriends}"
+            <ListView Grid.Row="1" SelectionMode="Extended" ItemsSource="{Binding Meeting.AddedFriends}"
+                      DisplayMemberPath="FullName"
                       SelectedItem="{Binding SelectedAddedFriend}"/>
 
             <StackPanel Grid.Column="1" Grid.Row="1">
@@ -85,13 +86,20 @@
             <ListView Grid.Row="1" Grid.Column="2" 
                       SelectionMode="Extended"
                       ItemsSource="{Binding AvailableFriends}"
+                      DisplayMemberPath="FullName"
                       SelectedItem="{Binding SelectedAvailableFriend}"/>
         </Grid>
         
         <!--Save / Delete Buttons-->
         <StackPanel Grid.Row="7" Orientation="Horizontal">
-            <Button Content="Save" Width="75" Margin="10" Command="{Binding SaveCommand}"/>
-            <Button Content="Delete" Width="75" Margin="10" Command="{Binding DeleteCommand}"/>
+            <Button Content="Save" Width="125" Margin="10" Command="{Binding SaveCommand}"/>
+            <Button Content="Reset" Width="125" Margin="10" Command="{Binding ResetCommand}" />
+            <Button Content="Delete" Width="125" Margin="10" Command="{Binding DeleteCommand}"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="9"  Grid.ColumnSpan="2" HorizontalAlignment="Right">
+            <Button Content="Save All" Width="125" Margin="10" Command="{Binding SaveAllCommand}" />
+            <Button Content="Close All" Width="125" Margin="10" Command="{Binding CloseAllCommand}" />
         </StackPanel>
     </Grid>
 </UserControl>

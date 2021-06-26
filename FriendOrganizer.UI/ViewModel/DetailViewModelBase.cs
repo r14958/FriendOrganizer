@@ -1,22 +1,25 @@
-﻿using FriendOrganizer.UI.Event;
+﻿using FriendOrganizer.UI.Commands;
+using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
+using FriendOrganizer.UI.Wrapper;
 using Microsoft.EntityFrameworkCore;
 using Prism.Commands;
 using Prism.Events;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public abstract class DetailViewModelBase : ViewModelBase, IDetailViewModel
+    public abstract class DetailViewModelBase : NotifyPropChangedBase, IDetailViewModel
     {
         protected readonly IEventAggregator eventAggregator;
         protected readonly IMessageDialogService messageDialogService;
-        private bool hasChanges;
         private int id;
         private string title;
+        private bool hasChanges;
 
         public DetailViewModelBase(IEventAggregator eventAggregator,
             IMessageDialogService messageDialogService)
@@ -24,12 +27,29 @@ namespace FriendOrganizer.UI.ViewModel
             this.eventAggregator = eventAggregator;
             this.messageDialogService = messageDialogService;
             SaveCommand = new DelegateCommand(OnSaveExecuteAsync, OnSaveCanExecute);
+            ResetCommand = new DelegateCommand(OnResetExecuteAsync, OnResetCanExecute);
             DeleteCommand = new DelegateCommand(OnDeleteExecuteAsync, OnDeleteCanExecute);
             CloseDetailViewCommand = new DelegateCommand(OnCloseDetailExecute);
+            CloseAllCommand = new DelegateCommand(OnCloseAllDetailExecute);
+            SaveAllCommand = new DelegateCommand(OnSaveAllDetailExecute, OnSaveAllDetailCanExecute);
 
         }
 
-        
+        protected virtual bool OnSaveAllDetailCanExecute()
+        {
+            return true;
+        }
+
+        private void OnSaveAllDetailExecute()
+        {
+            eventAggregator.GetEvent<AfterAllDetailSaveEvent>().Publish();
+        }
+
+        private void OnCloseAllDetailExecute()
+        {
+            eventAggregator.GetEvent<AfterAllDetailCloseEvent>().Publish();
+        }
+
         public int Id
         {
             get { return id; }
@@ -50,6 +70,8 @@ namespace FriendOrganizer.UI.ViewModel
             }
         }
 
+        public virtual bool HasAnyChanges { get; }
+
         public bool HasChanges
         {
             get { return hasChanges; }
@@ -59,18 +81,26 @@ namespace FriendOrganizer.UI.ViewModel
                 {
                     hasChanges = value;
                     OnPropertyChanged();
-                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                    InvalidateControls();
                 }
             }
         }
 
         public abstract Task LoadAsync(int id);
 
+        public ICommand CloseAllCommand { get; private set; }
+        
+        public ICommand SaveAllCommand { get; private set; }
+
         public ICommand SaveCommand { get; private set; }
+        
+        public ICommand ResetCommand { get; private set; }
         
         public ICommand DeleteCommand { get; private set; }
 
         public ICommand CloseDetailViewCommand { get; private set; }
+
+        protected static bool AllHaveAnyChanges { get; private set; }
 
         protected virtual bool OnDeleteCanExecute()
         {
@@ -78,8 +108,20 @@ namespace FriendOrganizer.UI.ViewModel
         }
 
         protected abstract void OnDeleteExecuteAsync();
+
+        protected virtual bool OnResetCanExecute()
+        { 
+            return true; 
+        }
+
+
+        protected abstract void OnResetExecuteAsync();
         
-        protected abstract bool OnSaveCanExecute();
+
+        protected virtual bool OnSaveCanExecute()
+        {
+            return true;
+        }
         
         protected abstract void OnSaveExecuteAsync();
 
@@ -121,18 +163,30 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected async virtual void OnCloseDetailExecute()
         {
-            if (HasChanges)
+            if (!HasChanges)
             {
-                var response = await messageDialogService.ShowOKCancelDialogAsync("You have made changes.  Close this item without saving?", "Question");
-                if (response == MessageDialogResult.Cancel) return; 
+                SendCloseEvent();
             }
+            else
+            {    
+                var response = await messageDialogService.ShowOKCancelDialogAsync($"You have made changes. Close {Title} without saving?", "Question");
+                if (response == MessageDialogResult.OK)
+                {
+                    
+                    SendCloseEvent();
+                }
+            }
+        }
 
+        private void SendCloseEvent()
+        {
+            OnResetExecuteAsync();
             eventAggregator.GetEvent<AfterDetailCloseEvent>()
-                    .Publish(new AfterDetailCloseEventArgs
-                    {
-                        Id = this.Id,
-                        ViewModelName = GetType().Name
-                    });
+                            .Publish(new AfterDetailCloseEventArgs
+                            {
+                                Id = this.Id,
+                                ViewModelName = GetType().Name
+                            });
         }
 
         protected async Task SaveWithOptimisticConcurrencyAsync(Func<Task> saveFunc, Action afterSaveAction)
@@ -196,6 +250,14 @@ namespace FriendOrganizer.UI.ViewModel
             }
 
             afterSaveAction();
+        }
+
+        protected virtual void InvalidateControls()
+        {
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+            ((DelegateCommand)ResetCommand).RaiseCanExecuteChanged();
+            ((DelegateCommand)ResetCommand).RaiseCanExecuteChanged();
+            ((DelegateCommand)SaveAllCommand).RaiseCanExecuteChanged();
         }
     }
 }

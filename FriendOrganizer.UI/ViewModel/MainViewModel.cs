@@ -15,7 +15,7 @@ using static FriendOrganizer.UI.Utilities;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public class MainViewModel : ViewModelBase
+    public class MainViewModel : NotifyPropChangedBase
     {
         private readonly CreateDetailViewModel createDetailViewModel;
         private readonly IEventAggregator eventAggregator;
@@ -39,6 +39,10 @@ namespace FriendOrganizer.UI.ViewModel
                 .Subscribe(OnAfterDetailDeleted);
             this.eventAggregator.GetEvent<AfterDetailCloseEvent>()
                 .Subscribe(OnAfterDetailClosed);
+            this.eventAggregator.GetEvent<AfterAllDetailCloseEvent>()
+                .Subscribe(OnAfterAllDetailClosed);
+            this.eventAggregator.GetEvent<AfterAllDetailSaveEvent>()
+                .Subscribe(OnAfterAllDetailSaved);
 
             NavigationViewModel = navigationViewModel;
 
@@ -106,7 +110,6 @@ namespace FriendOrganizer.UI.ViewModel
                 try
                 {
                     await detailViewModel.LoadAsync(args.Id);
-
                 }
                 catch
                 {
@@ -181,6 +184,33 @@ namespace FriendOrganizer.UI.ViewModel
             if (detailviewModel != null)
             {
                 DetailViewModels.Remove(detailviewModel);
+            }
+        }
+
+        private void OnAfterAllDetailClosed()
+        {
+
+            // Note that we are iterating threw an anonymous list that is a copy of the 
+            // DetailViewModels collection.  This allow us to modify the collection in the loop.
+            foreach (DetailViewModelBase detailViewModel in DetailViewModels.ToList())
+            {
+                // Tell the detailViewModel to close itself.
+                detailViewModel.CloseDetailViewCommand.Execute(null);
+            }
+        }
+
+        private void OnAfterAllDetailSaved()
+        {
+
+            // Note that we are iterating threw an anonymous list that is a copy of the 
+            // DetailViewModels collection.  This allow us to modify the collection in the loop.
+            foreach (DetailViewModelBase detailViewModel in DetailViewModels.ToList())
+            {
+                if (detailViewModel.HasChanges)
+                {
+                    // Tell the detailViewModel to close itself.
+                    detailViewModel.SaveCommand.Execute(null);
+                }
             }
         }
     }

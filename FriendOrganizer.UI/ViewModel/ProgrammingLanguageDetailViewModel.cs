@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.Validator;
@@ -8,6 +9,7 @@ using Prism.Commands;
 using Prism.Events;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -29,7 +31,6 @@ namespace FriendOrganizer.UI.ViewModel
             Title = "Programming Languages";
             this.programmingLanguageRepository = programmingLanguageRepository;
             this.languageValidator = languageValidator;
-
             ProgrammingLanguages = new ObservableCollection<ProgrammingLanguageWrapper>();
 
             AddCommand = new DelegateCommand(OnAddExecute);
@@ -64,7 +65,7 @@ namespace FriendOrganizer.UI.ViewModel
             // Create a new wrapper with a new (empty) entity.
             var wrapper = new ProgrammingLanguageWrapper(new ProgrammingLanguage(), new ProgrammingLanguageValidator());
             // Add a property changed event handler to the wrapped entity.
-            wrapper.PropertyChanged += Wrapper_PropertyChanged;
+            wrapper.PropertyChanged += ProgrammingLanguage_PropertyChanged;
             // Add the new entity to the DbContext of the repository.
             programmingLanguageRepository.AddAsync(wrapper.Model);
             // Add the wrapper to the public collection
@@ -86,49 +87,58 @@ namespace FriendOrganizer.UI.ViewModel
             }
             
             // Remove the wrapped entity's event handler
-            SelectedProgrammingLanguage.PropertyChanged -= Wrapper_PropertyChanged;
+            SelectedProgrammingLanguage.PropertyChanged -= ProgrammingLanguage_PropertyChanged;
+            
             // Instruct the repository to remove the entity from it DbContext.
             programmingLanguageRepository.Remove(SelectedProgrammingLanguage.Model);
+            
             // Remove the wrapped entity from the public collection.
             ProgrammingLanguages.Remove(SelectedProgrammingLanguage);
+            
             // Null out the wrapped entity.
             SelectedProgrammingLanguage = null;
-            // Re-sync the view model's HasChanges with the repository.
-            HasChanges = programmingLanguageRepository.HasChanges();
+            
             // Recheck the CanExecute property of the save command.
             ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
+
 
         public override async Task LoadAsync(int id)
         {
             Id = id;
 
-            foreach (var wrapper in ProgrammingLanguages)
+            foreach (var programmingLanguage in ProgrammingLanguages)
             {
-                wrapper.PropertyChanged -= Wrapper_PropertyChanged;
+                programmingLanguage.PropertyChanged -= ProgrammingLanguage_PropertyChanged;
             }
 
             ProgrammingLanguages.Clear();
 
             var languages = await programmingLanguageRepository.GetAllAsync();
 
-            foreach (var model in languages)
+            foreach (var language in languages)
             {
-                var wrapper = new ProgrammingLanguageWrapper(model, languageValidator);
-                wrapper.PropertyChanged += Wrapper_PropertyChanged;
-                ProgrammingLanguages.Add(wrapper);
+                var programmingLanguage = new ProgrammingLanguageWrapper(language, languageValidator);
+                programmingLanguage.PropertyChanged += ProgrammingLanguage_PropertyChanged;
+
+                ProgrammingLanguages.Add(programmingLanguage);
             }
         }
 
-        private void Wrapper_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ProgrammingLanguage_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (!HasChanges)
+            var programmingLanguage = (ProgrammingLanguageWrapper)sender;
+
+
+            if(e.PropertyName == nameof(programmingLanguage.IsChanged))
             {
-                HasChanges = programmingLanguageRepository.HasChanges();
+                HasChanges = programmingLanguage.IsChanged;
+                base.InvalidateControls();
             }
-            if (e.PropertyName == nameof(ProgrammingLanguageWrapper.HasErrors))
+
+            if (e.PropertyName == nameof(programmingLanguage.HasErrors))
             {
-                ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                base.InvalidateControls();
             }
         }
 
@@ -143,30 +153,41 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected override bool OnSaveCanExecute()
         {
-            return HasChanges && ProgrammingLanguages.All(plw => !plw.HasErrors);
+            return GetHasChanges() && ProgrammingLanguages.All(pl => !pl.HasErrors);
         }
 
         protected override async void OnSaveExecuteAsync()
         {
             await SaveWithOptimisticConcurrencyAsync(programmingLanguageRepository.SaveAsync,
                 () =>
-                //try
                 {
-                    //await programmingLanguageRepository.SaveAsync();
-                    HasChanges = programmingLanguageRepository.HasChanges();
                     base.RaiseCollectionSavedEvent();
                 });
-            //catch (Exception ex)
-            //{
+            foreach (var programmingLanguage in ProgrammingLanguages)
+            {
+                programmingLanguage.AcceptChanges();
+            }
+            HasChanges = GetHasChanges();
+        }
 
-            //    while (ex.InnerException != null)
-            //    {
-            //        ex = ex.InnerException;
-            //    }
-            //    messageDialogService.ShowInfoDialog("Error while saving the entities, " +
-            //        "the data will be reloaded. Details: " + ex.Message);
-            //    await LoadAsync(Id);
-            //}
+        protected override void OnResetExecuteAsync()
+        {
+            foreach (var programmingLanguage in ProgrammingLanguages)
+            {
+                programmingLanguage.RejectChanges();
+            }
+            HasChanges = GetHasChanges();
+            InvalidateControls();
+        }
+
+        protected override bool OnResetCanExecute()
+        {
+            return GetHasChanges();
+        }
+
+        private bool GetHasChanges()
+        {
+            return ProgrammingLanguages.Any(pl => pl.IsChanged);
         }
     }
 }

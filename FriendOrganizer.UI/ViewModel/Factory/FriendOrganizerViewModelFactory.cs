@@ -23,7 +23,7 @@ namespace FriendOrganizer.UI.ViewModel.Factory
             this.createNavigationViewModel = createNavigationViewModel;
         }
 
-        public ViewModelBase CreateViewModel(ViewType viewType)
+        public NotifyPropChangedBase CreateViewModel(ViewType viewType)
         {
             return viewType switch
             {
