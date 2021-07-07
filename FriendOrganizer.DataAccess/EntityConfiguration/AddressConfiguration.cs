@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.DataAccess.EntityConfiguration
 {
-    //public class AddressConfiguration : IEntityTypeConfiguration<Address>
-    //{
-        //public void Configure(EntityTypeBuilder<Address> builder)
-        //{
-        //    builder.ToTable(builder.Metadata.ClrType.Name);
-        //    builder.Property(a => a.City).HasMaxLength(50);
-        //    builder.Property(a => a.Street).HasMaxLength(50);
-        //    builder.Property(a => a.StreetNumber).HasMaxLength(20);
+    public class AddressConfiguration
+    {
+        public void Configure(EntityTypeBuilder<Address> builder)
+        {
+            builder.ToTable(builder.Metadata.ClrType.Name);
+            builder.Property(a => a.City).HasMaxLength(50);
+            builder.Property(a => a.Street).HasMaxLength(50);
+            builder.Property(a => a.StreetNumber).HasMaxLength(20);
 
-        //    // Define Version (in EntityBase) as a RowVersion to enable concurrency.
-        //    builder.Property(a => a.Version).HasDefaultValue(0).IsRowVersion();
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            builder.Property(a => a.Version).HasDefaultValue(0).IsRowVersion();
 
             //builder.HasData(
             //    new Address { Id = 1, City = "Müllheim", Street = "Elmstreet", StreetNumber = "12345", FriendId = 1 },
@@ -27,6 +27,6 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
             //    new Address { Id = 3, City = "Tiengen", Street = "Hardstreet", StreetNumber = "5", FriendId = 3 },
             //    new Address { Id = 4, City = "Neuenburg", Street = "Rheinweg", StreetNumber = "4", FriendId = 4 }
             //    );
-        //}
-    //}
+        }
+    }
 }

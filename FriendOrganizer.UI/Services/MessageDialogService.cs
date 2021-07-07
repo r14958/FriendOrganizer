@@ -15,7 +15,7 @@ namespace FriendOrganizer.UI.Services
     /// </summary>
     public class MessageDialogService : IMessageDialogService
     {
-        private MetroWindow MetroWindow => (MetroWindow)App.Current.MainWindow;
+        private static MetroWindow MetroWindow => (MetroWindow)App.Current.MainWindow;
 
         /// <summary>
         /// Displays a <see cref="MessageDialog"/>
@@ -35,6 +35,15 @@ namespace FriendOrganizer.UI.Services
         public async Task ShowInfoDialogAsync(string text) 
         {
             await MetroWindow.ShowMessageAsync("Info", text, MessageDialogStyle.Affirmative);
+        }
+
+        public MessageDialogResult ShowOKCancelDialogModal(string title, string text)
+        {
+            var result = MetroWindow.ShowModalMessageExternal(title, text, MessageDialogStyle.AffirmativeAndNegative);
+
+            return result == MahApps.Metro.Controls.Dialogs.MessageDialogResult.Affirmative
+                ? MessageDialogResult.OK
+                : MessageDialogResult.Cancel;
         }
     }
 

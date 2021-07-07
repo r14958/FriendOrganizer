@@ -19,7 +19,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string City
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -29,7 +29,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string Street
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -39,7 +39,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string StreetNumber
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 

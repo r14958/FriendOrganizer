@@ -23,6 +23,7 @@ namespace FriendOrganizer.UI.ViewModel
     {
         private readonly IFriendRepository friendRepository;
         private readonly IValidator<Friend> friendValidator;
+        private readonly IValidator<Address> addressValidator;
         private readonly IValidator<FriendPhoneNumber> phoneNumberValidator;
         private readonly ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService;
         private FriendPhoneNumberWrapper selectedPhoneNumber;
@@ -33,15 +34,18 @@ namespace FriendOrganizer.UI.ViewModel
         /// </summary>
         /// <param name="friendRepository">Data service to provide a <see cref="Friend"/> instance.</param>
         /// <param name="friendValidator">FluentValidation <see cref="FluentValidation.IValidator{T}"/> to perform data validation on the <see cref="Friend"/> instance.</param>
-        public FriendDetailViewModel(IFriendRepository friendRepository,
+        public FriendDetailViewModel(
+            IFriendRepository friendRepository,
             IEventAggregator eventAggregator,
             IValidator<Friend> friendValidator,
+            IValidator<Address> addressValidator,
             IValidator<FriendPhoneNumber> phoneNumberValidator,
             IMessageDialogService messageDialogService,
             ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService) : base(eventAggregator, messageDialogService)
         {
             this.friendRepository = friendRepository;
             this.friendValidator = friendValidator;
+            this.addressValidator = addressValidator;
             this.phoneNumberValidator = phoneNumberValidator;
             this.programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
@@ -51,7 +55,6 @@ namespace FriendOrganizer.UI.ViewModel
             eventAggregator.GetEvent<AfterCollectionSavedEvent>().Subscribe(AfterCollectionSaved);
 
             ProgrammingLanguages = new ObservableCollection<LookupItem<ProgrammingLanguage>>();
-            PhoneNumbers = new ObservableCollection<FriendPhoneNumberWrapper>();
         }
 
         /// <summary>
@@ -68,14 +71,12 @@ namespace FriendOrganizer.UI.ViewModel
         }
 
         /// <summary>
-        /// Gets the collection of <see cref="FriendPhoneNumber"/>.
-        /// </summary>
-        public ObservableCollection<FriendPhoneNumberWrapper> PhoneNumbers { get; }
-
-        /// <summary>
         /// Gets the collection of <see cref="ProgrammingLanguage"/>.
         /// </summary>
-        public ObservableCollection<LookupItem<ProgrammingLanguage>> ProgrammingLanguages { get; }
+        public ObservableCollection<LookupItem<ProgrammingLanguage>> ProgrammingLanguages 
+        { 
+            get; 
+        }
 
         /// Gets and sets the properties of an instance of the wrapped entity of <see cref="FriendPhoneNumber"/>.
         public FriendPhoneNumberWrapper SelectedPhoneNumber
@@ -113,8 +114,6 @@ namespace FriendOrganizer.UI.ViewModel
 
             TriggerValidationIfNew(friend);
 
-            InitializeFriendPhoneNumbers(friend);
-
             await LoadProgrammingLanguagesLookupAsync();
         }
         
@@ -122,10 +121,12 @@ namespace FriendOrganizer.UI.ViewModel
         {
             // Can only execute if the wrapped Entity is not null, does not have errors,
             // and has been changed since loaded.
-            return Friend != null
-                && !Friend.HasErrors
-                && PhoneNumbers.All(pn => !pn.HasErrors)
-                && Friend.IsChanged;
+            var notNull = Friend != null;
+            var isValid = Friend.IsValid;
+            var isChanged = Friend.IsChanged;
+            return notNull
+                && isValid
+                && isChanged;
         }
 
         protected override bool OnSaveAllDetailCanExecute()
@@ -183,7 +184,7 @@ namespace FriendOrganizer.UI.ViewModel
 
         protected override bool OnResetCanExecute()
         {
-            return Friend.IsChanged;
+            return Friend.IsChanged || Friend.PhoneNumbers.Any(pn => pn.IsChanged);
         }
 
         protected override void OnResetExecuteAsync()
@@ -211,13 +212,14 @@ namespace FriendOrganizer.UI.ViewModel
         /// <param name="friend">The <see cref="FriendOrganizer.Model.Friend"/> that is being wrapped for the <see cref="FriendDetailViewModel"/>.</param>
         private void InitializeFriendWrapper(Friend friend)
         {
-            Friend = new FriendWrapper(friend, friendValidator, phoneNumberValidator);
+            Friend = new FriendWrapper(friend, friendValidator, phoneNumberValidator, addressValidator);
 
             // Register this method to run whenever a Friend property changes. It will not run 
             // during the Load.
             Friend.PropertyChanged += (s, e) =>
             {
-                if (e.PropertyName == nameof(Friend.IsChanged))
+                if (e.PropertyName == nameof(Friend.IsChanged)
+                || e.PropertyName == nameof(Friend.IsValid))
                 {
                     HasChanges = Friend.IsChanged;
                     base.InvalidateControls();
@@ -230,12 +232,12 @@ namespace FriendOrganizer.UI.ViewModel
                     SetTitle();
                 }
 
-                // The HasErrors property of the Entity has changed...
-                if (e.PropertyName == nameof(Friend.HasErrors))
-                {
-                    // Raise the CanExecute changed event for all inherited delegate commands.
-                    base.InvalidateControls();
-                }
+                //// The HasErrors property of the Entity has changed...
+                //if (e.PropertyName == nameof(Friend.HasErrors))
+                //{
+                //    // Raise the CanExecute changed event for all inherited delegate commands.
+                //    base.InvalidateControls();
+                //}
             };
 
             // Now that the entity has been loaded, raise the CanExecute changed event of the SaveCommand.
@@ -255,23 +257,6 @@ namespace FriendOrganizer.UI.ViewModel
                 Friend.IgnoreChange(nameof(Friend.FirstName));
             }
             SetTitle();
-        }
-        
-        private void InitializeFriendPhoneNumbers(Friend friend)
-        {
-            foreach (var wrapper in PhoneNumbers)
-            {
-                wrapper.PropertyChanged -= FriendPhoneNumberWrapper_PropertyChanged;
-            }
-
-            PhoneNumbers.Clear();
-
-            foreach (var phoneNumber in friend.PhoneNumbers)
-            {
-                var wrapper = new FriendPhoneNumberWrapper(phoneNumber, phoneNumberValidator);
-                wrapper.PropertyChanged += FriendPhoneNumberWrapper_PropertyChanged;
-                PhoneNumbers.Add(wrapper);
-            }
         }
 
         private async void AfterCollectionSaved(AfterCollectionSavedEventArgs args)
@@ -313,7 +298,7 @@ namespace FriendOrganizer.UI.ViewModel
         private void OnAddPhoneNumberExecute()
         {
             // Create a new wrapper with a new (empty) phone number entity.
-            var newNumberWrapper = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new FriendPhoneNumberValidator());
+            var newNumberWrapper = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new PhoneValidator());
             
             // Add the empty phone number wrapper to the collection in the Friend wrapper.
             Friend.PhoneNumbers.Add(newNumberWrapper);

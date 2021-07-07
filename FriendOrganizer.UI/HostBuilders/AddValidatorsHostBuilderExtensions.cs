@@ -13,7 +13,7 @@ namespace FriendOrganizer.UI.HostBuilders
             host.ConfigureServices(services =>
             {
                 services.AddSingleton<IValidator<Friend>, FriendValidator>();
-                services.AddSingleton<IValidator<FriendPhoneNumber>, FriendPhoneNumberValidator>();
+                services.AddSingleton<IValidator<FriendPhoneNumber>, PhoneValidator>();
                 services.AddSingleton<IValidator<ProgrammingLanguage>, ProgrammingLanguageValidator>();
                 services.AddSingleton<IValidator<Meeting>, MeetingValidator>();
                 services.AddSingleton<IValidator<Address>, AddressValidator>();

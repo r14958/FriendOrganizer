@@ -1,6 +1,9 @@
-﻿namespace FriendOrganizer.Domain.Models
+﻿using System.Diagnostics;
+
+namespace FriendOrganizer.Domain.Models
 {
-    public class LookupItem<T> : EntityBase where T : EntityBase
+    [DebuggerDisplay("Id: {Id}, Display: {DisplayMember)")]
+    public class LookupItem<T> : EntityBase, ILookupItem where T : EntityBase
     {
         public string DisplayMember { get; set; }
     }

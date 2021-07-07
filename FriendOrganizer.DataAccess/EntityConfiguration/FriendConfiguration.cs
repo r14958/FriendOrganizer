@@ -27,29 +27,36 @@ namespace FriendOrganizer.DataAccess.EntityConfiguration
 
             builder.Property(f => f.IsDeveloper).HasDefaultValue(false);
 
-            
-            builder.OwnsOne(f => f.Address, a =>
-            {
-                a.ToTable(builder.Metadata.ClrType.Name);
-                a.Property(a => a.City).HasMaxLength(50);
-                a.Property(a => a.Street).HasMaxLength(50);
-                a.Property(a => a.StreetNumber).HasMaxLength(20);
-                a.Property(a => a.Version).HasDefaultValue(0).IsRowVersion();
-
-                a.HasData(
-                new Address { FriendId = 1, Id = 1, City = "Müllheim", Street = "Elmstreet", StreetNumber = "12345" },
-                new Address { FriendId = 2, Id = 2, City = "Boxford", Street = "King John Drive", StreetNumber = "6" },
-                new Address { FriendId = 3, Id = 3, City = "Tiengen", Street = "Hardstreet", StreetNumber = "5" },
-                new Address { FriendId = 4, Id = 4, City = "Neuenburg", Street = "Rheinweg", StreetNumber = "4" }
-                );
-            });
-
             builder.HasData(
-               new Friend { Id = 1, FirstName = "Thomas", LastName = "Huber" },
-               new Friend { Id = 2, FirstName = "Jeff", LastName = "Klein" },
-               new Friend { Id = 3, FirstName = "Andreas", LastName = "Boehler" },
-               new Friend { Id = 4, FirstName = "Chrissi", LastName = "Egin" }
+               new  { Id = 1, FirstName = "Thomas", LastName = "Huber" },
+               new  { Id = 2, FirstName = "Jeff", LastName = "Klein" },
+               new  { Id = 3, FirstName = "Andreas", LastName = "Boehler" },
+               new  { Id = 4, FirstName = "Chrissi", LastName = "Egin" }
                );
+
+            var address = builder.OwnsOne(f => f.Address); //, a =>
+            //{
+            //    a.ToTable(builder.Metadata.ClrType.Name);
+            //    a.Property(a => a.City).HasMaxLength(50);
+            //    a.Property(a => a.Street).HasMaxLength(50);
+            //    a.Property(a => a.StreetNumber).HasMaxLength(20);
+            //    a.Property(a => a.Version).HasDefaultValue(0).IsRowVersion();
+
+            address.ToTable(builder.Metadata.ClrType.Name);
+            address.Property(a => a.City).HasMaxLength(50);
+            address.Property(a => a.Street).HasMaxLength(50);
+            address.Property(a => a.StreetNumber).HasMaxLength(20);
+
+            // Define Version (in EntityBase) as a RowVersion to enable concurrency.
+            address.Property(a => a.Version).HasDefaultValue(0).IsRowVersion();
+
+            address.HasData(
+                    new { FriendId = 1, Id = 1, City = "Müllheim", Street = "Elmstreet", StreetNumber = "12345" },
+                    new { FriendId = 2, Id = 2, City = "Boxford", Street = "King John Drive", StreetNumber = "6" },
+                    new { FriendId = 3, Id = 3, City = "Tiengen", Street = "Hardstreet", StreetNumber = "5" },
+                    new { FriendId = 4, Id = 4, City = "Neuenburg", Street = "Rheinweg", StreetNumber = "4" }
+                    );
+            //});
         }
     }
 }

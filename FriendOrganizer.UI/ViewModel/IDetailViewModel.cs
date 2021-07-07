@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public interface IDetailViewModel : IDisposable, INotifyPropertyChanged
+    public interface IDetailViewModel : INotifyPropertyChanged // IDisposable
 
     {
         Task LoadAsync(int id);

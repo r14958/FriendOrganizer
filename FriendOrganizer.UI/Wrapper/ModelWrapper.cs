@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace FriendOrganizer.UI.Wrapper
 {
@@ -14,7 +15,8 @@ namespace FriendOrganizer.UI.Wrapper
     /// Generic data Model wrapper
     /// </summary>
     /// <typeparam name="T">The type of the model being wrapped.</typeparam>
-    public abstract class ModelWrapper<T> : NotifyDataErrorInfoBase, IRevertibleChangeTracking
+    public abstract class ModelWrapper<T> : NotifyDataErrorInfoBase, IValidatableTrackingObject,
+        IValidatableObject
     {
         protected readonly IValidator<T> validator;
         // Dictionary to store the original values of any simple, changed property in
@@ -22,7 +24,7 @@ namespace FriendOrganizer.UI.Wrapper
         private readonly Dictionary<string, object> originalValues;
         // List of all the complex properties and collections contained in the model
         // that is be wrapped by this model wrapper.
-        private readonly List<IRevertibleChangeTracking> trackingObjects;
+        private readonly List<IValidatableTrackingObject> trackingObjects;
 
         /// <summary>
         /// Constructor for this model wrapper.
@@ -42,6 +44,7 @@ namespace FriendOrganizer.UI.Wrapper
 
             originalValues = new();
             trackingObjects = new();
+            ValidateErrors();
         }
         
         /// <summary>
@@ -55,6 +58,19 @@ namespace FriendOrganizer.UI.Wrapper
         /// objects have changed.
         /// </summary>
         public virtual bool IsChanged => originalValues.Count > 0 || trackingObjects.Any(t => t.IsChanged);
+
+        /// <summary>
+        /// Returns whether error tracking dictionary is empty (returns true) or not (returns false).
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                var isValid = !HasErrors;
+                var trackingObjectsValid = trackingObjects.All(t => t.IsValid);
+                return isValid && trackingObjectsValid;
+            }
+        }
 
         /// <summary>
         /// Sets the state of the model wrapper assuming all changes have been accepted.
@@ -97,13 +113,14 @@ namespace FriendOrganizer.UI.Wrapper
             // Clear out the change tracking dictionary.
             originalValues.Clear();
 
-            
-
-            // Do the same for each tracking object .
+            // Do the same for each tracking object.
             foreach (var wrapper in trackingObjects)
             {
                 wrapper.RejectChanges();
             }
+            // Re-validate for errors.
+            ValidateErrors();
+
             // Fire all OnPropertyChanged events in one shot.
             OnPropertyChanged(string.Empty);
         }
@@ -123,10 +140,26 @@ namespace FriendOrganizer.UI.Wrapper
         /// <param name="propertyName">Optional: The name of the property whose value is being returned.
         /// If omitted, the name of the calling method or property will be used.</param>
         /// <returns>The value of the property.</returns>
-        protected virtual Tvalue GetValue<Tvalue>([CallerMemberName] string propertyName = null)
+        protected virtual Tvalue GetValueOrDefault<Tvalue>([CallerMemberName] string propertyName = null)
         {
-            return (Tvalue)typeof(T).GetProperty(propertyName).GetValue(Model);
+            // If Tvalue is nullable, the result may come back as null.
+            var result = typeof(T).GetProperty(propertyName).GetValue(Model);
+
+            // So test for this before attempting a cast. Default covers both nullable and non-nullable types safely.
+            return (result == default) ? default : (Tvalue)result;
         }
+
+        /// <summary>
+        /// Returns the value of a property of this model wrapper.
+        /// </summary>
+        /// <typeparam name="Tvalue">The type of property value being returned.</typeparam>
+        /// <param name="propertyName">Optional: The name of the property whose value is being returned.
+        /// If omitted, the name of the calling method or property will be used.</param>
+        /// <returns>The value of the property.</returns>
+        //protected virtual Tvalue GetValue<Tvalue>([CallerMemberName] string propertyName = null)
+        //{
+        //    return (Tvalue)typeof(Tvalue).GetProperty(propertyName).GetValue(Model);
+        //}
 
         protected virtual Tvalue GetOriginalValue<Tvalue>(string propertyName)
         {
@@ -140,7 +173,7 @@ namespace FriendOrganizer.UI.Wrapper
             else
             {
                 // ...the value has never changed, so just return the current value.
-                return GetValue<Tvalue>(propertyName);
+                return GetValueOrDefault<Tvalue>(propertyName);
             }
         }
 
@@ -165,7 +198,7 @@ namespace FriendOrganizer.UI.Wrapper
         protected virtual void SetValue<Tvalue>(Tvalue newValue, 
             [CallerMemberName] string propertyName = null)
         {
-            var currentValue = GetValue<Tvalue>(propertyName);
+            var currentValue = GetValueOrDefault<Tvalue>(propertyName);
 
             // If the property value did not change, do nothing...
             if (Equals(currentValue, newValue))
@@ -179,24 +212,14 @@ namespace FriendOrganizer.UI.Wrapper
             // Using Reflection, update the property of Model with the new value.
             typeof(T).GetProperty(propertyName).SetValue(Model, newValue);
 
+            // Re-validate for errors after the change.
+            ValidateErrors();
+
             // Raise the property changed event from the base class
             OnPropertyChanged(propertyName);
 
             // If one exists, also raise one for the "IsChanged" flag for the same property.
             OnPropertyChanged(propertyName + "IsChanged");
-
-            // Clear any existing validation errors for the property from the errors dictionary in the base class.
-            ClearErrors(propertyName);
-            ValidateErrors(newValue, propertyName);
-        }
-
-        private void ValidateErrors<Tvalue>(Tvalue newValue, string propertyName)
-        {
-            // If a validator was provided check for FluentValidation errors.
-            if (validator != null) ValidateFluentErrors();
-
-            // Then validate based on data annotations.
-            ValidateDataAnnotations(newValue, propertyName);
         }
 
         /// <summary>
@@ -217,6 +240,8 @@ namespace FriendOrganizer.UI.Wrapper
                 modelCollection.Clear();
                 // Add back in all the models in the wrapper collection.
                 modelCollection.AddRange(wrapperCollection.Select(w => w.Model));
+
+                ValidateErrors();
             };
             // Add property changed 
             RegisterTrackingObject(wrapperCollection);
@@ -233,8 +258,7 @@ namespace FriendOrganizer.UI.Wrapper
             RegisterTrackingObject(wrapper);
         }
 
-        private void RegisterTrackingObject<TTrackingObject>(TTrackingObject trackingObject)
-            where TTrackingObject : IRevertibleChangeTracking, INotifyPropertyChanged
+        private void RegisterTrackingObject(IValidatableTrackingObject trackingObject)
         {
             if (!trackingObjects.Contains(trackingObject))
             {
@@ -254,6 +278,11 @@ namespace FriendOrganizer.UI.Wrapper
             if (e.PropertyName == nameof(IsChanged))
             {
                 OnPropertyChanged(nameof(IsChanged));
+            }
+
+            else if (e.PropertyName == nameof(IsValid))
+            {
+                OnPropertyChanged(nameof(IsValid));
             }
         }
 
@@ -288,29 +317,116 @@ namespace FriendOrganizer.UI.Wrapper
             }
         }
 
+        private void ValidateErrors()
+        {
+            // If a validator was provided check for FluentValidation errors...
+            if (validator != null)
+            {
+                // Use FluentValidation only.
+                ValidateFluentErrors();
+            }
+            else
+            {
+                //Validate based on data annotations.
+                ValidateDataAnnotations();
+            }
+        }
+
+        // <summary>
+        /// Validates the wrapper's model using <see cref="FluentValidation"/> storing any errors in the
+        /// base class's <see cref="NotifyDataErrorInfoBase.Errors"/> dictionary.
+        /// </summary>
         private void ValidateFluentErrors()
         {
+            // Clear out any existing errors.
+            ClearAllErrors();
 
-            // Use the provided FluentValidation validator to generate a list of errors for the updated property.
-            ValidationResult validationResult = validator.Validate(Model);
+            // Use the FluentValidation validator to generate a list of errors.
+            // Note that the fluent validator is currently set to check the errors against the
+            // wrapper's model, not the wrapper itself.
+            // TODO: Decide if this should be changed.
+            FluentValidation.Results.ValidationResult validationResult = validator.Validate(Model);
 
-            // Load those errors into the error dictionary of the base class.
-            LoadErrors(validationResult);
+            // Get the list of validation "failures."
+            var results = validationResult.Errors;
+
+            if(results.Any())
+            {
+                // Generate a list of unique property names with errors (failures).
+                var propertyNames = results.Select(f => f.PropertyName).Distinct().ToList();
+
+                // Cycle through the properties with errors...
+                foreach (var propertyName in propertyNames)
+                {
+                    // Generate a list of unique error messages for each property and
+                    // store the list in the Errors dictionary under the property's name.
+                    // TODO: Decide if .Contains can safely be replaced with ==.
+                    Errors[propertyName] = results
+                        .Where(f => f.PropertyName.Contains(propertyName))
+                        .Select(f => f.ErrorMessage)
+                        .Distinct()
+                        .ToList();
+
+                    // Trigger the errors changed event for that property.
+                    OnErrorsChanged(propertyName);
+                }
+            }
+
+            // Trigger the  changed event for the wrapper's IsValid property.
+            OnPropertyChanged(nameof(IsValid));
         }
 
-        private void ValidateDataAnnotations<Tvalue>(Tvalue value, string propertyName)
+        /// <summary>
+        /// Validates the wrapper using <see cref="DataAnnotations"/> storing any errors in the
+        /// base class's <see cref="NotifyDataErrorInfoBase.Errors"/> dictionary.
+        /// </summary>
+        private void ValidateDataAnnotations()
         {
+            // Clear out any existing errors.
+            ClearAllErrors();
+
+            // Define an empty list for validation results.
             var results = new List<DataAnnotations.ValidationResult>();
 
-            var context = new DataAnnotations.ValidationContext(Model)
+            // Create a context (set of rules) for the validation.
+            // Note that we are validating the entire wrapper instance.
+            var context = new DataAnnotations.ValidationContext(this);
+
+            // Validate all annotated properties of the wrapper.
+            DataAnnotations.Validator.TryValidateObject(this, context, results, true);
+
+            // If there are any errors...
+            if (results.Any())
             {
-                MemberName = propertyName
-            };
+                // Generate a list of unique property names with errors.
+                // Note that the DataAnnotations.Validator stores errors by error message
+                // with lists of properties with that error, so a SelectMany function is required.
+                var propertyNames = results.SelectMany(r => r.MemberNames).Distinct().ToList();
 
-            DataAnnotations.Validator.TryValidateProperty(value, context, results);
+                // Cycle through the properties with errors...
+                foreach (var propertyName in propertyNames)
+                {
+                    // Generate a list of unique error messages for each property and
+                    // store the list in the Errors dictionary under the property's name.
+                    // TODO: Decide if .Contains can safely be replaced with ==.
+                    Errors[propertyName] = results
+                        .Where(r => r.MemberNames.Contains(propertyName))
+                        .Select(r => r.ErrorMessage)
+                        .Distinct()
+                        .ToList();
 
-            LoadErrors(propertyName, results);
+                    // Trigger the errors changed event for that property.
+                    OnErrorsChanged(propertyName);
+                }
+            }
+
+            // Trigger the  changed event for the wrapper's IsValid property.
+            OnPropertyChanged(nameof(IsValid));
         }
 
+        public virtual IEnumerable<DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        {
+            yield break;
+        }
     }
 }

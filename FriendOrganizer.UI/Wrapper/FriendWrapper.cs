@@ -2,7 +2,10 @@
 using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Validator;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,12 +13,14 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.Wrapper
 {
+    [DebuggerDisplay("{Friend.Friend")]
     /// <summary>
     /// Model wrapper for the <see cref="Friend"/> class.
     /// </summary>
     public class FriendWrapper : ModelWrapper<Friend>
     {
         private readonly IValidator<FriendPhoneNumber> phoneValidator;
+        private readonly IValidator<Address> addressValidator;
 
         /// <summary>
         /// Wraps the Model <see cref="Friend"/> and adds data validation.
@@ -24,11 +29,13 @@ namespace FriendOrganizer.UI.Wrapper
         /// <param name="friendValidator">Optional FluentValidation <see cref="IValidator{T}"/> where T is <see cref="Friend"/>.</param>
         public FriendWrapper(Friend model, 
             IValidator<Friend> friendValidator = null,
-            IValidator<FriendPhoneNumber> phoneValidator = null) : base(model, friendValidator)
+            IValidator<FriendPhoneNumber> phoneValidator = null,
+            IValidator<Address> addressValidator = null) : base(model, friendValidator)
         {
+            this.phoneValidator = phoneValidator;
+            this.addressValidator = addressValidator;
             InitializeComplexProperties(model);
             InitializeCollectionProperties(model);
-            this.phoneValidator = phoneValidator;
         }
 
         /// <summary>
@@ -62,7 +69,7 @@ namespace FriendOrganizer.UI.Wrapper
             }
             
             // Wrap all complex model properties in their own model wrappers.
-            Address = new AddressWrapper(model.Address);
+            Address = new AddressWrapper(model.Address, addressValidator);
 
             // Register all complex wrappers to enable property changes to bubble up.
             RegisterComplex<Address>(Address);
@@ -70,9 +77,10 @@ namespace FriendOrganizer.UI.Wrapper
 
         public int Id { get { return Model.Id; } }
 
+        [Required(ErrorMessage = "Please specify a first name.")]
         public string FirstName
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -83,7 +91,7 @@ namespace FriendOrganizer.UI.Wrapper
         
         public string LastName
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -94,7 +102,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string Email
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -104,18 +112,41 @@ namespace FriendOrganizer.UI.Wrapper
 
         public AddressWrapper Address { get; private set; }
 
+        public bool IsDeveloper
+        {
+            get { return GetValueOrDefault<bool>(); }
+            set { SetValue(value); }
+        }
+
+        public bool IsDeveloperOriginalValue => GetOriginalValue<bool>(nameof(IsDeveloper));
+
+        public bool IsDeveloperIsChanged => GetIsChanged(nameof(IsDeveloper));
+
         public ChangeTrackingCollection<FriendPhoneNumberWrapper> PhoneNumbers { get; private set; }
 
-        public string FullName => GetValue<string>();
+        public string FullName => GetValueOrDefault<string>();
 
         // This is an optional field, so the int must be nullable.
         public int? FavoriteLanguageId
         {
-            get { return GetValue<int?>(); }
+            get { return GetValueOrDefault<int?>(); }
             set { SetValue(value); }
         }
 
+        public int FavoriteLanguageIdOriginalValue => GetOriginalValue<int>(nameof(FavoriteLanguageId));
+
+        public bool FavoriteLanguageIdIsChanged => GetIsChanged(nameof(FavoriteLanguageId));
+
         // Override method to return true if any of the simple or complex properties have changes.
         public override bool IsChanged => base.IsChanged || Address.IsChanged;
+
+        public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (IsDeveloper && (FavoriteLanguageId == null || FavoriteLanguageId <=0))
+            {
+                yield return new ValidationResult("Please select a favorite language for the developer.", 
+                    new[] { nameof(IsDeveloper), nameof(FavoriteLanguageId) });
+            }
+        }
     }
 }

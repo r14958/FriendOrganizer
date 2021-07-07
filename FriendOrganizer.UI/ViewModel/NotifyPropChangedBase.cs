@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 namespace FriendOrganizer.UI.ViewModel
 {
     
-    public class NotifyPropChangedBase : INotifyPropertyChanged, IDisposable
+    public class NotifyPropChangedBase : INotifyPropertyChanged // IDisposable
     {
-        public virtual void Dispose() 
-        {
-            GC.SuppressFinalize(this);        
-        }
+        //public virtual void Dispose() 
+        //{
+        //    GC.SuppressFinalize(this);        
+        //}
         
         public event PropertyChangedEventHandler PropertyChanged;
         
@@ -22,7 +22,7 @@ namespace FriendOrganizer.UI.ViewModel
         /// Raises the property changed event.
         /// </summary>
         /// <param name="propertyName">Optional string.  If omitted, will invoke the <see cref="CallerMemberNameAttribute"/>
-        /// to automatically use the correct property name.</param>
+        /// to automatically use the caller's property name.</param>
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

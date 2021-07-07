@@ -6,6 +6,7 @@
              xmlns:sf="http://schemas.syncfusion.com/wpf"
              xmlns:conv="clr-namespace:FriendOrganizer.UI.ValueConverters"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:behaviors="clr-namespace:FriendOrganizer.UI.Behaviors"
              xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:src="clr-namespace:FriendOrganizer.UI.ViewModel"
              xmlns:dat="clr-namespace:System.Windows.Data;assembly=PresentationFramework"
@@ -34,24 +35,12 @@
         <!--Meeting Start Time Picker-->
         <Label Content="Start" Grid.Row="2" Margin="10 10 10 0"/>
         <sf:DateTimeEdit Grid.Row="3" Margin="10 0" Pattern="FullDateTime"
-                         DropDownView="Combined"
-                         IsVisibleRepeatButton="True"
-                         IsEnabledRepeatButton="True"
-                         NullValue="{x:Static sys:DateTime.Today}"
-                         ShowMaskOnNullValue="False"
-                         IsEmptyDateEnabled="True"
                          DateTime="{Binding Meeting.DateFrom, Converter={conv:DateTimeOffsetToDateTimeConverter}, 
                             Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
         <!--Meeting End Time Picker-->
         <Label Content="End" Grid.Row="4" Margin="10 10 10 0"/>
         <sf:DateTimeEdit Grid.Row="5" Margin="10 0" Pattern="FullDateTime"
-                         DropDownView="Combined"
-                         IsVisibleRepeatButton="True"
-                         IsEnabledRepeatButton="True"
-                         NullValue="{x:Static sys:DateTime.Today}"
-                         ShowMaskOnNullValue="False"
-                         IsEmptyDateEnabled="True"
                          DateTime="{Binding Meeting.DateTo, Converter={conv:DateTimeOffsetToDateTimeConverter}, 
                             Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         

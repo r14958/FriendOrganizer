@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace FriendOrganizer.Domain.Models
 {
+    [DebuggerDisplay("Id: {Id}, Name: {FullName}")]
     public class Friend : EntityBase
     {
         private string firstName;

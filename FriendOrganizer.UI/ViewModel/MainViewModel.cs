@@ -7,6 +7,7 @@ using Prism.Commands;
 using Prism.Events;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -54,6 +55,17 @@ namespace FriendOrganizer.UI.ViewModel
 
             OpenSingleDetailViewCommand = new DelegateCommand<Type>(OnOpenSingleDetailViewExecute);
 
+        }
+
+        public void OnClosing(CancelEventArgs e)
+        {
+            if (DetailViewModels.Any(vm => vm.HasChanges))
+            {
+                var result =  messageDialogService.ShowOKCancelDialogModal("Close Application?",
+                    "You have unsaved changes. OK to discard changes and close the application?");
+
+                e.Cancel = result == MessageDialogResult.Cancel;
+            }
         }
 
 

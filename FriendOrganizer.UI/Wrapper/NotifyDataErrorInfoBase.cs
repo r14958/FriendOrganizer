@@ -18,12 +18,12 @@ namespace FriendOrganizer.UI.Wrapper
         /// Key: the name of the property.
         /// Value: List of errors (strings).
         /// </summary>
-        protected Dictionary<string, List<string>> errors = new();
+        protected Dictionary<string, List<string>> Errors = new();
         private static int deltaChanges;
 
 
         // If the errors dictionary has entries, then the model has errors.
-        public bool HasErrors => errors.Any();
+        public bool HasErrors => Errors.Any();
 
         public static bool HasAnyChanges => DeltaChanges > 0;
 
@@ -41,9 +41,9 @@ namespace FriendOrganizer.UI.Wrapper
         public IEnumerable GetErrors(string propertyName)
         {
             // If the errors dictionary contains the propertyName
-            return errors.ContainsKey(propertyName)
+            return Errors.ContainsKey(propertyName)
                 // Return its list of errors
-                ? errors[propertyName]
+                ? Errors[propertyName]
                 // or return null.
                 : null;
         }
@@ -51,18 +51,18 @@ namespace FriendOrganizer.UI.Wrapper
         /// <summary>
         /// Invokes the event handler when the validation errors for a particular property have changed.
         /// </summary>
-        /// <param name="propertyName">The name of the property whose entries in the <see cref="errors"/> errors dictionary are being changed.</param>
+        /// <param name="propertyName">The name of the property whose entries in the <see cref="Errors"/> errors dictionary are being changed.</param>
         protected virtual void OnErrorsChanged(string propertyName)
         {
             ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
 
-            // Raise the property changed event of the ViewModelBase class for the HasErrorProperty.
+            // Raise the property changed event of the NotifyPropChangedBase class for the HasErrorProperty.
             base.OnPropertyChanged(nameof(HasErrors));
         }
 
 
         /// <summary>
-        /// Loads validation errors from a collection of <see cref="DataAnnotations.ValidationResult"/> to the <see cref="errors"/> error dictionary.
+        /// Loads validation errors from a collection of <see cref="DataAnnotations.ValidationResult"/> to the <see cref="Errors"/> error dictionary.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="validationResults"></param>
@@ -78,7 +78,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         
         /// <summary>
-        /// Loads errors from the <see cref="ValidationResult"/> to the <see cref="errors"/> error dictionary.
+        /// Loads errors from the <see cref="ValidationResult"/> to the <see cref="Errors"/> error dictionary.
         /// </summary>
         /// <param name="validationResult"></param>
         protected void LoadErrors(ValidationResult validationResult)
@@ -93,7 +93,7 @@ namespace FriendOrganizer.UI.Wrapper
         }
 
         /// <summary>
-        /// Cycles through all validation errors and adds them to the <see cref="errors"/> error dictionary.
+        /// Cycles through all validation errors and adds them to the <see cref="Errors"/> error dictionary.
         /// </summary>
         /// <param name="validationResult"></param>
         private void AddErrors(ValidationResult validationResult)
@@ -105,7 +105,7 @@ namespace FriendOrganizer.UI.Wrapper
         }
 
         /// <summary>
-        /// Adds a single error message to the <see cref="errors"/> dictionary.
+        /// Adds a single error message to the <see cref="Errors"/> dictionary.
         /// </summary>
         /// <param name="error"> The validation error object.</param>
         private void AddError(ValidationFailure error)
@@ -113,34 +113,48 @@ namespace FriendOrganizer.UI.Wrapper
             string propertyName = error.PropertyName;
 
             // If the property is not found in the error dictionary...
-            if (!errors.ContainsKey(propertyName))
+            if (!Errors.ContainsKey(propertyName))
             {
                 // Add it with a blank list of error messages.
-                errors[propertyName] = new List<string>();
+                Errors[propertyName] = new List<string>();
 
             }
             // If the error message is not in the list for that property...
-            if (!errors[propertyName].Contains(error.ErrorMessage))
+            if (!Errors[propertyName].Contains(error.ErrorMessage))
             {
                 // Add it.
-                errors[propertyName].Add(error.ErrorMessage);
+                Errors[propertyName].Add(error.ErrorMessage);
                 OnErrorsChanged(propertyName);
             }
         }
 
         /// <summary>
-        /// Removes all entries in the <see cref="errors"/> error dictionary for 
+        /// Removes all entries in the <see cref="Errors"/> dictionary for 
         /// a particular property.
         /// </summary>
         /// <param name="propertyName">The name of the property to be removed from the error dictionary.</param>
         protected void ClearErrors(string propertyName)
         {
-            if (errors.ContainsKey(propertyName))
+            if (Errors.ContainsKey(propertyName))
             {
-                errors.Remove(propertyName);
+                Errors.Remove(propertyName);
                 OnErrorsChanged(propertyName);
             }
         }
 
+        /// <summary>
+        /// Removes all entries in the <see cref="Errors"/> dictionary, notifying each 
+        /// property that its error status has changed.
+        /// </summary>
+        protected void ClearAllErrors()
+        {
+            // Cycle through each key (property name) in the Error dictionary.
+            // Note we are copying the keys to a list to a void runtime errors
+            // as we delete them.
+            foreach (var propertyName in Errors.Keys.ToList())
+            {
+                ClearErrors(propertyName);
+            }
+        }
     }
 }

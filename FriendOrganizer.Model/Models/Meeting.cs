@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace FriendOrganizer.Domain.Models
 {
+    [DebuggerDisplay("Id: {Id}, Title: {Title}")]
     public class Meeting : EntityBase
     {
 

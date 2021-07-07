@@ -16,12 +16,22 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string Number
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
         public string NumberOriginalValue => GetOriginalValue<string>(nameof(Number));
 
         public bool NumberIsChanged => GetIsChanged(nameof(Number));
+
+        public string Comment
+        {
+            get { return GetValueOrDefault<string>(); }
+            set { SetValue(value); }
+        }
+
+        public string CommentOriginalValue => GetOriginalValue<string>(nameof(Comment));
+
+        public bool CommentIsChanged => GetIsChanged(nameof(Comment));
     }
 }

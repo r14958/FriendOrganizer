@@ -20,7 +20,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string Name
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 

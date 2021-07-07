@@ -7,5 +7,7 @@ namespace FriendOrganizer.UI.Services
         Task<MessageDialogResult> ShowOKCancelDialogAsync(string title, string text);
 
         public Task ShowInfoDialogAsync(string text);
+
+        MessageDialogResult ShowOKCancelDialogModal(string title, string text);
     }
 }

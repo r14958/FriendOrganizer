@@ -1,5 +1,8 @@
-﻿using FriendOrganizer.UI.ViewModel;
+﻿using FriendOrganizer.Domain.Models;
+using FriendOrganizer.UI.ViewModel;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI
@@ -30,7 +33,5 @@ namespace FriendOrganizer.UI
                 onError?.Invoke(e);
             }
         }
-
-        
     }
 }

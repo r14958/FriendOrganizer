@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FriendOrganizer.Domain.Models
 {
+    [DebuggerDisplay("Name: {Friend.FullName}, Address: {StreetNumber} {Street}, {City}")]
     public class Address : EntityBase
     {
         public string City { get; set; }

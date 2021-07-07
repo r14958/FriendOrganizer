@@ -29,7 +29,7 @@ namespace FriendOrganizer.UI.Data.Lookups
         }
 
         /// <summary>
-        /// Transforms a collection of Db entities of type T into a list of lightweight lookup items of type T.
+        /// Transforms a collection of Db entities of type T into a list of lightweight <see cref="LookupItem{T}"/>.
         /// </summary>
         /// <returns>A list of <see cref="LookupItem{T}"/></returns>
         public async Task<IEnumerable<LookupItem<T>>> GetLookupAsync()

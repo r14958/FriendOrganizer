@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.Wrapper
 {
-    public class ChangeTrackingCollection<T> : ObservableCollection<T>, IRevertibleChangeTracking
-        where T : class, IRevertibleChangeTracking, INotifyPropertyChanged
+    public class ChangeTrackingCollection<T> : ObservableCollection<T>, IValidatableTrackingObject
+        where T : class, IValidatableTrackingObject
     {
         private IList<T> originalCollection;
 
@@ -24,9 +24,9 @@ namespace FriendOrganizer.UI.Wrapper
 
             AttachItemPropertyChangedHandler(originalCollection);
 
-            addedItems = new();
-            removedItems = new();
-            modifiedItems = new();
+            addedItems = new ObservableCollection<T>();
+            removedItems = new ObservableCollection<T>();
+            modifiedItems = new ObservableCollection<T>();
 
             AddedItems = new ReadOnlyObservableCollection<T>(addedItems);
             RemovedItems = new ReadOnlyObservableCollection<T>(removedItems);
@@ -38,7 +38,8 @@ namespace FriendOrganizer.UI.Wrapper
         public ReadOnlyObservableCollection<T> ModifiedItems { get; private set; }
 
         public bool IsChanged => AddedItems.Count > 0 || ModifiedItems.Count > 0 || RemovedItems.Count > 0;
-        
+
+        public bool IsValid => this.All(t => t.IsValid);
 
         private void AttachItemPropertyChangedHandler(IList<T> items)
         {
@@ -47,6 +48,7 @@ namespace FriendOrganizer.UI.Wrapper
                 item.PropertyChanged += ItemPropertyChanged;
             }
         }
+        
         private void DetachItemPropertyChangedHandler(IList<T> items)
         {
             foreach (var item in items)
@@ -57,35 +59,47 @@ namespace FriendOrganizer.UI.Wrapper
 
         private void ItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Cast the sender to the appropriate type.
-            var item = (T)sender;
-
-            // If the item is already in the added Items collection, do nothing...
-            if (addedItems.Contains(item)) return;
-
-            // Otherwise, if the item is changed from its original value...
-            if (item.IsChanged)
+            // If the IsValid property changed, raise its OnPropertyChanged event handler.
+            if (e.PropertyName == nameof(IsValid))
             {
-                //...and its not in the modified items collection...
-                if (!modifiedItems.Contains(item))
-                {
-                    //...add it.
-                    modifiedItems.Add(item);
-                } 
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsValid)));
             }
-            // Otherwise, if is NOT changed from its original value...
+            
+            // For all other property changes, track them in the change tracking dictionaries.
             else
             {
-                // ...but it is in the modified items collection...
-                if (modifiedItems.Contains(item))
-                {
-                    // ...remove it.
-                    modifiedItems.Remove(item);
-                }
-            }
+                // Cast the sender to the appropriate type.
+                var item = (T)sender;
 
-            // Fire the changed event for the IsChanged property of ChangeTrackingCollection.
-            OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsChanged)));
+                // If the item is already in the added Items collection, do nothing...
+                // Only care if item is added, not if it is changed after being added
+                // but before it is saved.
+                if (addedItems.Contains(item)) return;
+
+                // Otherwise, if the item is changed from its original value...
+                if (item.IsChanged)
+                {
+                    //...and its not in the modified items collection...
+                    if (!modifiedItems.Contains(item))
+                    {
+                        //...add it to the modified collection.
+                        modifiedItems.Add(item);
+                    }
+                }
+                // Otherwise, if is NOT changed from its original value...
+                else
+                {
+                    // ...but it is in the modified items collection...
+                    if (modifiedItems.Contains(item))
+                    {
+                        // ...remove it from the modified collection.
+                        modifiedItems.Remove(item);
+                    }
+                }
+
+                // Fire the changed event for the IsChanged property of ChangeTrackingCollection.
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsChanged))); 
+            }
         }
 
         /// <summary>
@@ -175,6 +189,8 @@ namespace FriendOrganizer.UI.Wrapper
 
             // Let the UI (and other listeners) know the IsChanged property of change tracking collection has been updated.
             OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsChanged)));
+            //TODO: Should this be uncommented? Unit tests pass without it!
+            //OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsValid)));
         }
         /// <summary>
         /// Replaces all entries in an existing observable collection with a new list of members.

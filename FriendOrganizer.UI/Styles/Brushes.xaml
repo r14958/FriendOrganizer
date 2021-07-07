@@ -2,9 +2,30 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
     <SolidColorBrush x:Key="IsChangedBackgroundBrush" Color="SteelBlue"/>
+    <SolidColorBrush x:Key="HasErrorBackgroundBrish" Color="LightCoral"/>
+
+    <!--Override of SystemColors for DataGrid and ComboBox selection-->
+    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#999999"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#999999"/>
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#999999"/>
+
+    <!--Default Brushes for the FriendStorage-application-->
+    <!--<SolidColorBrush x:Key="DefaultForegroundBrush" Color="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+    <SolidColorBrush x:Key="DefaultBackgroundBrush" Color="{DynamicResource MahApps.Brushes.ThemeBackground}"/>
+    <SolidColorBrush x:Key="DefaultBorderBrush" Color="{DynamicResource MahApps.Brushes.Control.Border}"/>-->
+    <SolidColorBrush x:Key="DefaultForegroundBrush" Color="{Binding Source={StaticResource MahApps.Brushes.ThemeForeground}, Path=Color}"/>
+    <SolidColorBrush x:Key="DefaultBackgroundBrush" Color="{Binding Source={StaticResource MahApps.Brushes.ThemeBackground}, Path=Color}"/>
+    <SolidColorBrush x:Key="DefaultBorderBrush" Color="{Binding Source={StaticResource MahApps.Brushes.Control.Border}, Path=Color}"/>
+
+    <SolidColorBrush x:Key="DisabledBorderBrush" Color="Gray"/>
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="Gray"/>
 
     <SolidColorBrush x:Key="LabelForegroundBrush" Color="#CCCCCC"/>
-    
-    <SolidColorBrush x:Key="ValidationForegroundBrush" Color="White"/>
 
+    <SolidColorBrush x:Key="ButtonMouseOverBackgroundBrush" Color="#777777"/>
+    <SolidColorBrush x:Key="ButtonIsPressedBackgroundBrush" Color="#999999"/>
+    <SolidColorBrush x:Key="ButtonIsPressedBorderBrush" Color="#777777"/>
+    <SolidColorBrush x:Key="ButtonMouseOverBorderBrush" Color="#777777"/>
+
+    <SolidColorBrush x:Key="ValidationForegroundBrush" Color="White"/>
 </ResourceDictionary>

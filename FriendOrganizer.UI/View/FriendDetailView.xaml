@@ -3,11 +3,13 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:behaviors="clr-namespace:FriendOrganizer.UI.Behaviors"
              xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:local="clr-namespace:FriendOrganizer.UI.View"
              xmlns:control="clr-namespace:FriendOrganizer.UI.Control"
              xmlns:vm="clr-namespace:FriendOrganizer.UI.ViewModel"
+             xmlns:controls="clr-namespace:FriendOrganizer.UI.View.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -23,6 +25,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -34,6 +37,7 @@
                      Margin="10 0 10 0"
                      Text="{Binding Friend.FirstName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      />
+
 
         <Label Grid.Row="0" Grid.Column="1" Content="City" Margin="10 10 10 0"/>
         <TextBox Grid.Row="1" Grid.Column="1"
@@ -66,44 +70,90 @@
                      />
 
         <!--Programming language label and combo box-->
-        <Label Grid.Row="6" Content="Favorite Language" Grid.ColumnSpan="2" Margin="10 0"/>
         <!--Bound to the collection of LookupItems in the DataContext (ViewModel) called ProgrammingLanguages.-->
         <!--The description of the LookupItem is its DisplayMember property, but the important value is its Id.-->
         <!--That Id will be found to the FavoriteLanguageId for that Friend.-->
-        <ComboBox Grid.Row="7" Grid.ColumnSpan="2"
-                  Margin="10 0 10 10"
-                  ItemsSource="{Binding ProgrammingLanguages}" 
-                  DisplayMemberPath="DisplayMember" 
-                  SelectedValuePath="Id" 
-                  SelectedValue="{Binding Friend.FavoriteLanguageId, Mode=TwoWay}"/>
+        <Grid Grid.Row="7" Grid.ColumnSpan="2" Margin="0 20 0 0">
+            
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" 
+                        Orientation="Horizontal"
+                        VerticalAlignment="Bottom"
+                        Height="36
+                        "
+                        Name="StackPanel1">
+                <Viewbox Height="{Binding Path=ActualHeight, ElementName=StackPanel1}">
+                <CheckBox Grid.Column="0" Margin="10 0 0 10"
+                          x:Name="IsDeveloperCheckBox"
+                          IsChecked="{Binding Friend.IsDeveloper, Mode=TwoWay}"/>   
+                </Viewbox>
+            </StackPanel>
+            <Label Grid.Column="1" Content="Is Developer" 
+                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0 0 0 10"/>
+            <Label Grid.Column="2" Content="Favorite Language"  Margin="10 0 0 10"
+                    Visibility="{Binding ElementName=IsDeveloperCheckBox, Path=IsChecked,
+                    Converter={StaticResource booleanToVisibilityConverter}}"/>
+            <ComboBox Grid.Column="3" Margin="0 0 10 10"
+                      HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding ProgrammingLanguages}" 
+                      DisplayMemberPath="DisplayMember"
+                      SelectedValuePath="Id" 
+                      SelectedValue="{Binding Friend.FavoriteLanguageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Visibility="{Binding ElementName=IsDeveloperCheckBox, Path=IsChecked,
+                        Converter={StaticResource booleanToVisibilityConverter}}"/>
+        </Grid>
 
         <!--FriendPhoneNumberList UserControl-->
         <DockPanel Grid.Row="8" Margin="10" Grid.ColumnSpan="2">
-            <StackPanel DockPanel.Dock="Left">
+            <StackPanel DockPanel.Dock="Left" Width="40">
                 <Label Content=" " Margin="5 0 5 0"/>
                 <Button Style="{StaticResource AddButtonStyle}"
                     Command="{Binding AddPhoneNumberCommand}"/>
                 <Button Style="{StaticResource RemoveButtonStyle}"
                     Command="{Binding RemovePhoneNumberCommand}"/>
             </StackPanel>
-            <DataGrid ItemsSource="{Binding PhoneNumbers}"
-                  SelectedItem="{Binding SelectedPhoneNumber, Mode=TwoWay}"
-                  AutoGenerateColumns="False" RowHeaderWidth="0">
+            
+            <!--Below the DataGrid, dock a user control to summarize changes in the DataGrid.-->
+            <controls:ChangeTrackingCollectionInfo DockPanel.Dock="Bottom" 
+                                                   DataContext="{Binding Friend.PhoneNumbers}"
+                                                   FontSize="16"
+                                                   Height="Auto"/>
+            
+            <!--A DataGrid will get the remaining space in the DockPanel.-->
+            <DataGrid x:Name="phoneNumberGrid"
+                    ItemsSource="{Binding Friend.PhoneNumbers}"
+                    SelectedItem="{Binding SelectedPhoneNumber, Mode=TwoWay}"
+                    AutoGenerateColumns="False" RowHeaderWidth="0"
+                    behaviors:DataGridChangeBehavior.IsActive="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Phone Numbers" Width="*"
+                    <DataGridTextColumn Header="Phone Numbers" Width="300"
                                     ElementStyle="{StaticResource DataGridColumnStyle}"
                                     EditingElementStyle="{StaticResource DataGridEditingColumnStyle}"
-                                    Binding="{Binding Number, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                                    Binding="{Binding Number, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Comment" Width="*"
+                                    ElementStyle="{StaticResource DataGridColumnStyle}"
+                                    EditingElementStyle="{StaticResource DataGridEditingColumnStyle}"
+                                    Binding="{Binding Comment, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
 
+        <!--Below the DockPanel, place two sets of buttons in horizontal StackPanels.
+        One on the left side of the grid row.-->
         <StackPanel Orientation="Horizontal" Grid.Row="9"  Grid.ColumnSpan="2" HorizontalAlignment="Left">
             <Button Content="Save" Width="125" Margin="10" Command="{Binding SaveCommand}" />
             <Button Content="Reset" Width="125" Margin="10" Command="{Binding ResetCommand}" />
             <Button Content="Delete" Width="125" Margin="10" Command="{Binding DeleteCommand}" />
         </StackPanel>
-
+        
+        <!--And one on the right.-->
         <StackPanel Orientation="Horizontal" Grid.Row="9"  Grid.ColumnSpan="2" HorizontalAlignment="Right">
             <Button Content="Save All" Width="125" Margin="10" Command="{Binding SaveAllCommand}"/>
             <Button Content="Close All" Width="125" Margin="10" Command="{Binding CloseAllCommand}" />

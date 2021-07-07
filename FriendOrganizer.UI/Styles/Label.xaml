@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
-        <Setter Property="Foreground" Value="{StaticResource LabelForegroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
     </Style>
 
 </ResourceDictionary>

@@ -30,7 +30,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public string Title
         {
-            get { return GetValue<string>(); }
+            get { return GetValueOrDefault<string>(); }
             set { SetValue(value); }
         }
 
@@ -41,7 +41,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public DateTimeOffset DateFrom
         {
-            get { return FixedDtoValue(GetValue<DateTimeOffset>()); }
+            get { return FixedDtoValue(GetValueOrDefault<DateTimeOffset>()); }
             set 
             { 
                 SetValue(value);
@@ -58,7 +58,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public DateTimeOffset DateTo
         {
-            get { return FixedDtoValue(GetValue<DateTimeOffset>()); }
+            get { return FixedDtoValue(GetValueOrDefault<DateTimeOffset>()); }
             set
             {
                 SetValue(value);

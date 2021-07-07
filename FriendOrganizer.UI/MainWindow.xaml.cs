@@ -1,5 +1,6 @@
 ﻿using FriendOrganizer.UI.ViewModel;
 using MahApps.Metro.Controls;
+using System.ComponentModel;
 using System.Windows;
 
 namespace FriendOrganizer.UI
@@ -26,6 +27,14 @@ namespace FriendOrganizer.UI
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await viewModel.LoadAsync();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            // Let the viewModel warn the user if any changes are unsaved.
+            viewModel.OnClosing(e);
         }
     }
 }
