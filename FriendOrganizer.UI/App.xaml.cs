@@ -38,7 +38,6 @@ namespace FriendOrganizer.UI
                 .AddDbContext()
                 .AddServices()
                 .AddDataRepositories()
-                .AddValidators()
                 .AddViewModels()
                 .AddViews();
         }

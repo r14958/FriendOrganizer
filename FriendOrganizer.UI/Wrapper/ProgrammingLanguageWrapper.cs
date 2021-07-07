@@ -10,9 +10,8 @@ namespace FriendOrganizer.UI.Wrapper
 {
     public class ProgrammingLanguageWrapper : ModelWrapper<ProgrammingLanguage>
     {
-        public ProgrammingLanguageWrapper(ProgrammingLanguage model, 
-            IValidator<ProgrammingLanguage> validator = null) 
-            : base(model, validator)
+        public ProgrammingLanguageWrapper(ProgrammingLanguage model) 
+            : base(model)
         {
         }
 

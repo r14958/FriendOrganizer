@@ -129,20 +129,6 @@ namespace FriendOrganizer.UI.Wrapper
         }
 
         /// <summary>
-        /// Removes all entries in the <see cref="Errors"/> dictionary for 
-        /// a particular property.
-        /// </summary>
-        /// <param name="propertyName">The name of the property to be removed from the error dictionary.</param>
-        protected void ClearErrors(string propertyName)
-        {
-            if (Errors.ContainsKey(propertyName))
-            {
-                Errors.Remove(propertyName);
-                OnErrorsChanged(propertyName);
-            }
-        }
-
-        /// <summary>
         /// Removes all entries in the <see cref="Errors"/> dictionary, notifying each 
         /// property that its error status has changed.
         /// </summary>
@@ -153,7 +139,8 @@ namespace FriendOrganizer.UI.Wrapper
             // as we delete them.
             foreach (var propertyName in Errors.Keys.ToList())
             {
-                ClearErrors(propertyName);
+                Errors.Remove(propertyName);
+                OnErrorsChanged(propertyName);
             }
         }
     }

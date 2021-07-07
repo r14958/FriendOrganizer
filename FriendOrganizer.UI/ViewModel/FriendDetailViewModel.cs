@@ -5,7 +5,6 @@ using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Event;
 using FriendOrganizer.UI.Services;
-using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
@@ -22,9 +21,6 @@ namespace FriendOrganizer.UI.ViewModel
     public class FriendDetailViewModel : DetailViewModelBase, IFriendDetailViewModel
     {
         private readonly IFriendRepository friendRepository;
-        private readonly IValidator<Friend> friendValidator;
-        private readonly IValidator<Address> addressValidator;
-        private readonly IValidator<FriendPhoneNumber> phoneNumberValidator;
         private readonly ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService;
         private FriendPhoneNumberWrapper selectedPhoneNumber;
         private FriendWrapper friend;
@@ -37,16 +33,10 @@ namespace FriendOrganizer.UI.ViewModel
         public FriendDetailViewModel(
             IFriendRepository friendRepository,
             IEventAggregator eventAggregator,
-            IValidator<Friend> friendValidator,
-            IValidator<Address> addressValidator,
-            IValidator<FriendPhoneNumber> phoneNumberValidator,
             IMessageDialogService messageDialogService,
             ILookupDataService<ProgrammingLanguage> programmingLanguageLookupDataService) : base(eventAggregator, messageDialogService)
         {
             this.friendRepository = friendRepository;
-            this.friendValidator = friendValidator;
-            this.addressValidator = addressValidator;
-            this.phoneNumberValidator = phoneNumberValidator;
             this.programmingLanguageLookupDataService = programmingLanguageLookupDataService;
 
             AddPhoneNumberCommand = new DelegateCommand(OnAddPhoneNumberExecute);
@@ -212,7 +202,7 @@ namespace FriendOrganizer.UI.ViewModel
         /// <param name="friend">The <see cref="FriendOrganizer.Model.Friend"/> that is being wrapped for the <see cref="FriendDetailViewModel"/>.</param>
         private void InitializeFriendWrapper(Friend friend)
         {
-            Friend = new FriendWrapper(friend, friendValidator, phoneNumberValidator, addressValidator);
+            Friend = new FriendWrapper(friend);
 
             // Register this method to run whenever a Friend property changes. It will not run 
             // during the Load.
@@ -298,7 +288,7 @@ namespace FriendOrganizer.UI.ViewModel
         private void OnAddPhoneNumberExecute()
         {
             // Create a new wrapper with a new (empty) phone number entity.
-            var newNumberWrapper = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new PhoneValidator());
+            var newNumberWrapper = new FriendPhoneNumberWrapper(new FriendPhoneNumber());
             
             // Add the empty phone number wrapper to the collection in the Friend wrapper.
             Friend.PhoneNumbers.Add(newNumberWrapper);

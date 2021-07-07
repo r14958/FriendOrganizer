@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
-using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -32,24 +31,25 @@ namespace FriendOrganizer.UITests.Wrapper
         {
             // Do not pass in a FluentValidation validator, so relying only on data annotations
             // in the wrapper.
-            var wrapper = new FriendWrapper(friend, null);
+            var wrapper = new FriendWrapper(friend);
             Assert.IsFalse(wrapper.HasErrors);
 
             wrapper.FirstName = "";
             Assert.IsTrue(wrapper.HasErrors);
 
             var errors = wrapper.GetErrors(nameof(wrapper.FirstName)).Cast<string>();
-            Assert.AreEqual(1, errors.Count());
+            Assert.AreEqual(2, errors.Count());
             Assert.AreEqual("Please specify a first name.", errors.First());
 
+            errors = wrapper.GetErrors(nameof(wrapper.FirstName)).Cast<string>();
             wrapper.FirstName = "J";
-            Assert.IsFalse(wrapper.HasErrors);
+            Assert.AreEqual(1, errors.Count());
         }
 
         [TestMethod]
         public void ShouldReturnValidationErrorIfFirstNameOrLastNameIsEmpty()
         {
-            var wrapper = new FriendWrapper(friend, new FriendValidator());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsFalse(wrapper.HasErrors);
 
             wrapper.FirstName = "";
@@ -64,7 +64,7 @@ namespace FriendOrganizer.UITests.Wrapper
 
             errors = wrapper.GetErrors(nameof(wrapper.FirstName)).Cast<string>();
             Assert.AreEqual(1, errors.Count());
-            Assert.AreEqual("First name must be at least two characters.", errors.First());
+            Assert.AreEqual("First name must be at least 2 characters.", errors.First());
 
             wrapper.FirstName = "Linda";
             wrapper.LastName = "";
@@ -79,7 +79,7 @@ namespace FriendOrganizer.UITests.Wrapper
 
             errors = wrapper.GetErrors(nameof(wrapper.LastName)).Cast<string>();
             Assert.AreEqual(1, errors.Count());
-            Assert.AreEqual("Last name must be at least two characters.", errors.First());
+            Assert.AreEqual("Last name must be at least 2 characters.", errors.First());
 
             wrapper.LastName = "Smith";
             Assert.IsFalse(wrapper.HasErrors);
@@ -90,7 +90,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldRaiseErrorsChangedEventWhenFirstNameIsSetToEmptyAndBack()
         {
             var fired = false;
-            var wrapper = new FriendWrapper(friend, new FriendValidator());
+            var wrapper = new FriendWrapper(friend);
 
             wrapper.ErrorsChanged += (s, e) =>
             {
@@ -150,7 +150,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldSetErrorsAndIsValidAfterWrapperInitialization()
         {
             friend.FirstName = "";
-            var wrapper = new FriendWrapper(friend, new FriendValidator());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.HasErrors);
             Assert.IsFalse(wrapper.IsValid);
 
@@ -162,7 +162,7 @@ namespace FriendOrganizer.UITests.Wrapper
         [TestMethod]
         public void ShouldRefreshErrorsAndIsValidWhenRejectingChanges()
         {
-            var wrapper = new FriendWrapper(friend, new FriendValidator());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.IsValid);
             Assert.IsFalse(wrapper.HasErrors);
 

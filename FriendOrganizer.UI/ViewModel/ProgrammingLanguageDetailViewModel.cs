@@ -3,7 +3,6 @@ using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Services;
-using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
@@ -19,7 +18,6 @@ namespace FriendOrganizer.UI.ViewModel
     public class ProgrammingLanguageDetailViewModel : DetailViewModelBase
     {
         private readonly IProgrammingLanguageRepository programmingLanguageRepository;
-        private readonly IValidator<ProgrammingLanguage> languageValidator;
         private ProgrammingLanguageWrapper selectedProgrammingLanguage;
 
         public ProgrammingLanguageDetailViewModel(IEventAggregator eventAggregator,
@@ -30,7 +28,6 @@ namespace FriendOrganizer.UI.ViewModel
         {
             Title = "Programming Languages";
             this.programmingLanguageRepository = programmingLanguageRepository;
-            this.languageValidator = languageValidator;
             ProgrammingLanguages = new ObservableCollection<ProgrammingLanguageWrapper>();
 
             AddCommand = new DelegateCommand(OnAddExecute);
@@ -63,7 +60,7 @@ namespace FriendOrganizer.UI.ViewModel
         private void OnAddExecute()
         {
             // Create a new wrapper with a new (empty) entity.
-            var wrapper = new ProgrammingLanguageWrapper(new ProgrammingLanguage(), new ProgrammingLanguageValidator());
+            var wrapper = new ProgrammingLanguageWrapper(new ProgrammingLanguage());
             // Add a property changed event handler to the wrapped entity.
             wrapper.PropertyChanged += ProgrammingLanguage_PropertyChanged;
             // Add the new entity to the DbContext of the repository.
@@ -118,7 +115,7 @@ namespace FriendOrganizer.UI.ViewModel
 
             foreach (var language in languages)
             {
-                var programmingLanguage = new ProgrammingLanguageWrapper(language, languageValidator);
+                var programmingLanguage = new ProgrammingLanguageWrapper(language);
                 programmingLanguage.PropertyChanged += ProgrammingLanguage_PropertyChanged;
 
                 ProgrammingLanguages.Add(programmingLanguage);

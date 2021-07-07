@@ -2,6 +2,7 @@
 using FriendOrganizer.Domain.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,11 +11,14 @@ namespace FriendOrganizer.UI.Wrapper
 {
     public class MeetingWrapper : ModelWrapper<Meeting>
     {
+        private const int MinimumTitleLength = 2;
+        private const int MaximumTitleLength = 50;
+
         private readonly IValidator<Friend> friendValidator;
 
         public MeetingWrapper(Meeting model, 
             IValidator<Meeting> meetingValidator = null,
-            IValidator<Friend> friendValidator = null) : base(model, meetingValidator)
+            IValidator<Friend> friendValidator = null) : base(model)
         {
             InitializeCollectionProperties(model);
             //InitializeComplexProperties(model);
@@ -105,6 +109,25 @@ namespace FriendOrganizer.UI.Wrapper
 
             // Using a method in the base class, register the two model and wrapper collections to keep them in sync.
             RegisterCollection(AddedFriends, model.Friends.ToList());
+        }
+
+        public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                yield return new ValidationResult("Please specify a meeting title.",
+                    new[] { nameof(Title) });
+            }
+            else if (Title.Length < MinimumTitleLength)
+            {
+                yield return new ValidationResult($"City name must be at least {MinimumTitleLength} characters.",
+                    new[] { nameof(Title) });
+            }
+            else if (Title.Length > MaximumTitleLength)
+            {
+                yield return new ValidationResult($"City name cannot exceed {MaximumTitleLength} characters.",
+                                   new[] { nameof(Title) });
+            }
         }
     }
 }

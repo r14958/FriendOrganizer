@@ -1,5 +1,4 @@
 ﻿using FriendOrganizer.Domain.Models;
-using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -30,7 +29,7 @@ namespace FriendOrganizer.UITests.Wrapper
         [TestMethod]
         public void ShouldSetIsValidRoot()
         {
-            var wrapper = new FriendWrapper(friend,new FriendValidator(), new PhoneValidator(), new AddressValidator());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.IsValid);
 
             wrapper.Address.City = "";
@@ -44,7 +43,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldSetIsValidOfRootAfterInitialization()
         {
             friend.Address.City = "";
-            var wrapper = new FriendWrapper(friend, new FriendValidator(), new PhoneValidator(), new AddressValidator());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsFalse(wrapper.IsValid);
 
             wrapper.Address.City = "Boston";

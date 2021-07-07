@@ -1,15 +1,10 @@
 ﻿using FluentValidation;
 using FriendOrganizer.Domain.Models;
-using FriendOrganizer.UI.Validator;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.Wrapper
 {
@@ -19,6 +14,11 @@ namespace FriendOrganizer.UI.Wrapper
     /// </summary>
     public class FriendWrapper : ModelWrapper<Friend>
     {
+        private const int MinimumFirstNameLength = 2;
+        private const int MaximumFirstNameLength = 50;
+        private const int MinimumLastNameLength = 2;
+        private const int MaximumLastNameLength = 50;
+
         private readonly IValidator<FriendPhoneNumber> phoneValidator;
         private readonly IValidator<Address> addressValidator;
 
@@ -30,7 +30,7 @@ namespace FriendOrganizer.UI.Wrapper
         public FriendWrapper(Friend model, 
             IValidator<Friend> friendValidator = null,
             IValidator<FriendPhoneNumber> phoneValidator = null,
-            IValidator<Address> addressValidator = null) : base(model, friendValidator)
+            IValidator<Address> addressValidator = null) : base(model)
         {
             this.phoneValidator = phoneValidator;
             this.addressValidator = addressValidator;
@@ -50,7 +50,7 @@ namespace FriendOrganizer.UI.Wrapper
                 throw new ArgumentException("PhoneNumbers cannot be null.");
             }
             PhoneNumbers = new ChangeTrackingCollection<FriendPhoneNumberWrapper>(
-                model.PhoneNumbers.Select(pn => new FriendPhoneNumberWrapper(pn, phoneValidator)));
+                model.PhoneNumbers.Select(pn => new FriendPhoneNumberWrapper(pn)));
 
             // Using a method in the base class, register the two model and wrapper collections to keep them in sync.
             RegisterCollection(PhoneNumbers, model.PhoneNumbers);
@@ -77,7 +77,6 @@ namespace FriendOrganizer.UI.Wrapper
 
         public int Id { get { return Model.Id; } }
 
-        [Required(ErrorMessage = "Please specify a first name.")]
         public string FirstName
         {
             get { return GetValueOrDefault<string>(); }
@@ -142,6 +141,41 @@ namespace FriendOrganizer.UI.Wrapper
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (string.IsNullOrWhiteSpace(FirstName))
+            {
+                yield return new ValidationResult("Please specify a first name.",
+                    new[] { nameof(FirstName) });
+            }
+            if (FirstName.Length < MinimumFirstNameLength)
+            {
+                yield return new ValidationResult($"First name must be at least {MinimumFirstNameLength} characters.",
+                    new[] { nameof(FirstName) });
+            }
+            if (FirstName.Length > MaximumFirstNameLength)
+            {
+                yield return new ValidationResult($"First name cannot exceed {MaximumFirstNameLength} characters.",
+                                   new[] { nameof(FirstName) });
+            }
+            if (string.IsNullOrWhiteSpace(LastName))
+            {
+                yield return new ValidationResult("Please specify a last name.",
+                    new[] { nameof(LastName) });
+            }
+            if (LastName.Length < MinimumLastNameLength)
+            {
+                yield return new ValidationResult($"Last name must be at least {MinimumLastNameLength} characters.",
+                                   new[] { nameof(LastName) });
+            }
+            if (LastName.Length > MaximumLastNameLength)
+            {
+                yield return new ValidationResult($"Last name cannot exceed {MaximumLastNameLength} characters.",
+                                   new[] { nameof(LastName) });
+            }
+            if (Email != null && !new EmailAddressAttribute().IsValid(Email))
+            {
+                yield return new ValidationResult($"Please enter a valid email address.",
+                                   new[] { nameof(Email) });
+            }
             if (IsDeveloper && (FavoriteLanguageId == null || FavoriteLanguageId <=0))
             {
                 yield return new ValidationResult("Please select a favorite language for the developer.", 

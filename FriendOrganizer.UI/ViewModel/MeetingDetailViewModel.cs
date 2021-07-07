@@ -20,8 +20,6 @@ namespace FriendOrganizer.UI.ViewModel
     public class MeetingDetailViewModel : DetailViewModelBase
     {
         private readonly IMeetingRepository meetingRepository;
-        private readonly IValidator<Meeting> meetingValidator;
-        private readonly IValidator<Friend> friendValidator;
         private readonly ILookupDataService<Friend> friendLookupDataService;
         private MeetingWrapper meeting;
         private FriendWrapper selectedAddedFriend;
@@ -30,13 +28,9 @@ namespace FriendOrganizer.UI.ViewModel
         public MeetingDetailViewModel(IMeetingRepository meetingRepository,
             IEventAggregator eventAggregator,
             IMessageDialogService messageDialogService,
-            IValidator<Meeting> meetingValidator,
-            IValidator<Friend> friendValidator,
             ILookupDataService<Friend> friendLookupDataService) : base(eventAggregator, messageDialogService)
         {
             this.meetingRepository = meetingRepository;
-            this.meetingValidator = meetingValidator;
-            this.friendValidator = friendValidator;
             this.friendLookupDataService = friendLookupDataService;
             eventAggregator.GetEvent<AfterDetailSavedEvent>().Subscribe(OnDetailSaved);
             eventAggregator.GetEvent<AfterDetailDeletedEvent>().Subscribe(OnDetailDeleted);
@@ -135,7 +129,7 @@ namespace FriendOrganizer.UI.ViewModel
 
             foreach (var friend in allFriends)
             {
-                var wrapper = new FriendWrapper(friend, friendValidator);
+                var wrapper = new FriendWrapper(friend);
                 if (meeting.Friends.Contains(friend))
                 {
                     wrapper.PropertyChanged += AddedFriendPropertyChanged;
@@ -301,7 +295,7 @@ namespace FriendOrganizer.UI.ViewModel
             List<Friend> allFriends = await meetingRepository.GetAllFriendsAsync();
 
             //Sort the list by Friend FullName
-            var allFriendWrappers = allFriends.OrderBy(f => f.FullName).Select(f => new FriendWrapper(f, friendValidator));
+            var allFriendWrappers = allFriends.OrderBy(f => f.FullName).Select(f => new FriendWrapper(f));
 
             // Clear the two public observable collections.
             AddedFriends.Clear();
@@ -323,7 +317,7 @@ namespace FriendOrganizer.UI.ViewModel
        
         private void InitializeMeetingWrapper(Meeting meeting)
         {
-            Meeting = new MeetingWrapper(meeting, meetingValidator, friendValidator);
+            Meeting = new MeetingWrapper(meeting);
 
             Meeting.PropertyChanged += (s, e) =>
             {

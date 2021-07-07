@@ -1,5 +1,4 @@
 ﻿using FriendOrganizer.Domain.Models;
-using FriendOrganizer.UI.Validator;
 using FriendOrganizer.UI.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -14,9 +13,6 @@ namespace FriendOrganizer.UITests.Wrapper
     public class ValidationCollectionProperty
     {
         private Friend friend;
-        private FriendValidator friendValidator;
-        private PhoneValidator phoneValidator;
-        private AddressValidator addressValidator;
 
         [TestInitialize]
         public void Initialize()
@@ -34,16 +30,12 @@ namespace FriendOrganizer.UITests.Wrapper
 
                 }
             };
-
-            friendValidator = new FriendValidator();
-            phoneValidator = new PhoneValidator();
-            addressValidator = new AddressValidator();
         }
 
         [TestMethod]
         public void ShouldSetIsValidOfRoot()
         {
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.IsValid);
 
             wrapper.PhoneNumbers.First().Number = "555";
@@ -57,7 +49,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldSetIsValidOfRootWhenInitializing()
         {
             friend.PhoneNumbers.First().Number = "555";
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
             Assert.IsFalse(wrapper.IsValid);
             Assert.IsFalse(wrapper.HasErrors);
             Assert.IsTrue(wrapper.PhoneNumbers.First().HasErrors);
@@ -66,7 +58,7 @@ namespace FriendOrganizer.UITests.Wrapper
         [TestMethod]
         public void ShouldSetIsValidOfRootWhenRemovingInvalidItem()
         {
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.IsValid);
 
             wrapper.PhoneNumbers.First().Number = "555";
@@ -79,8 +71,8 @@ namespace FriendOrganizer.UITests.Wrapper
         [TestMethod]
         public void ShouldSetIsValidOfRootWhenAddingInvalidItem()
         {
-            var phoneToAdd = new FriendPhoneNumberWrapper(new FriendPhoneNumber(), new PhoneValidator());
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var phoneToAdd = new FriendPhoneNumberWrapper(new FriendPhoneNumber());
+            var wrapper = new FriendWrapper(friend);
             Assert.IsTrue(wrapper.IsValid);
 
             wrapper.PhoneNumbers.Add(phoneToAdd);
@@ -94,7 +86,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldRaisePropertyChangedEventForIsValidOfRoot()
         {
             var fired = false;
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
 
             wrapper.PropertyChanged += (s, e) =>
             {
@@ -116,7 +108,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldRaisePropertyChangedEventForIsValidOfRootWhenRemovingInvalidItem()
         {
             var fired = false;
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
 
             wrapper.PropertyChanged += (s, e) =>
             {
@@ -138,7 +130,7 @@ namespace FriendOrganizer.UITests.Wrapper
         public void ShouldRaisePropertyChangedEventForIsValidOfRootWhenAddingInvalidItem()
         {
             var fired = false;
-            var wrapper = new FriendWrapper(friend, friendValidator, phoneValidator, addressValidator);
+            var wrapper = new FriendWrapper(friend);
 
             wrapper.PropertyChanged += (s, e) =>
             {

@@ -18,7 +18,6 @@ namespace FriendOrganizer.UI.Wrapper
     public abstract class ModelWrapper<T> : NotifyDataErrorInfoBase, IValidatableTrackingObject,
         IValidatableObject
     {
-        protected readonly IValidator<T> validator;
         // Dictionary to store the original values of any simple, changed property in
         // the model that is being wrapped by this model wrapper.
         private readonly Dictionary<string, object> originalValues;
@@ -33,14 +32,13 @@ namespace FriendOrganizer.UI.Wrapper
         /// <param name="validator">Optional: FluentValidation validator for this model.  If omitted, none
         /// will be applied.</param>
         /// <exception cref="ArgumentNullException"/>
-        public ModelWrapper(T model, IValidator<T> validator=null)
+        public ModelWrapper(T model)
         {
             if (model == null)
             {
                 throw new ArgumentNullException(nameof(Model), "The model being wrapped cannot be null.");
             }
             Model = model;
-            this.validator = validator;
 
             originalValues = new();
             trackingObjects = new();
@@ -103,9 +101,6 @@ namespace FriendOrganizer.UI.Wrapper
                 // Since the dictionary keys are the property names, use Reflection to set
                 // each property back to its original value.
                 typeof(T).GetProperty(originalValueEntry.Key).SetValue(Model, originalValueEntry.Value);
-
-                // Remove any tracked errors associated with this property name.
-                ClearErrors(originalValueEntry.Key);
 
                 DeltaChanges--;
             }
@@ -319,69 +314,6 @@ namespace FriendOrganizer.UI.Wrapper
 
         private void ValidateErrors()
         {
-            // If a validator was provided check for FluentValidation errors...
-            if (validator != null)
-            {
-                // Use FluentValidation only.
-                ValidateFluentErrors();
-            }
-            else
-            {
-                //Validate based on data annotations.
-                ValidateDataAnnotations();
-            }
-        }
-
-        // <summary>
-        /// Validates the wrapper's model using <see cref="FluentValidation"/> storing any errors in the
-        /// base class's <see cref="NotifyDataErrorInfoBase.Errors"/> dictionary.
-        /// </summary>
-        private void ValidateFluentErrors()
-        {
-            // Clear out any existing errors.
-            ClearAllErrors();
-
-            // Use the FluentValidation validator to generate a list of errors.
-            // Note that the fluent validator is currently set to check the errors against the
-            // wrapper's model, not the wrapper itself.
-            // TODO: Decide if this should be changed.
-            FluentValidation.Results.ValidationResult validationResult = validator.Validate(Model);
-
-            // Get the list of validation "failures."
-            var results = validationResult.Errors;
-
-            if(results.Any())
-            {
-                // Generate a list of unique property names with errors (failures).
-                var propertyNames = results.Select(f => f.PropertyName).Distinct().ToList();
-
-                // Cycle through the properties with errors...
-                foreach (var propertyName in propertyNames)
-                {
-                    // Generate a list of unique error messages for each property and
-                    // store the list in the Errors dictionary under the property's name.
-                    // TODO: Decide if .Contains can safely be replaced with ==.
-                    Errors[propertyName] = results
-                        .Where(f => f.PropertyName.Contains(propertyName))
-                        .Select(f => f.ErrorMessage)
-                        .Distinct()
-                        .ToList();
-
-                    // Trigger the errors changed event for that property.
-                    OnErrorsChanged(propertyName);
-                }
-            }
-
-            // Trigger the  changed event for the wrapper's IsValid property.
-            OnPropertyChanged(nameof(IsValid));
-        }
-
-        /// <summary>
-        /// Validates the wrapper using <see cref="DataAnnotations"/> storing any errors in the
-        /// base class's <see cref="NotifyDataErrorInfoBase.Errors"/> dictionary.
-        /// </summary>
-        private void ValidateDataAnnotations()
-        {
             // Clear out any existing errors.
             ClearAllErrors();
 
@@ -390,10 +322,10 @@ namespace FriendOrganizer.UI.Wrapper
 
             // Create a context (set of rules) for the validation.
             // Note that we are validating the entire wrapper instance.
-            var context = new DataAnnotations.ValidationContext(this);
+            var context = new ValidationContext(this);
 
             // Validate all annotated properties of the wrapper.
-            DataAnnotations.Validator.TryValidateObject(this, context, results, true);
+            Validator.TryValidateObject(this, context, results, true);
 
             // If there are any errors...
             if (results.Any())
