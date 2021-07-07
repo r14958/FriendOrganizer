@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +15,7 @@ namespace FriendOrganizer.UI.Wrapper
         private const int MaximumStreetLength = 50;
         private const int MaximumStreetNumberLength = 20;
 
-        public AddressWrapper(Address model, IValidator<Address> validator = null) : base(model)
+        public AddressWrapper(Address model) : base(model)
         {
         }
 
@@ -59,22 +58,22 @@ namespace FriendOrganizer.UI.Wrapper
                 yield return new ValidationResult("Please specify a city name.",
                     new[] { nameof(City) });
             }
-            else if (City.Length < MinimumCityLength)
+            if (City == null || City.Length < MinimumCityLength)
             {
                 yield return new ValidationResult($"City name must be at least {MinimumCityLength} characters.",
                     new[] { nameof(City) });
             }
-            else if (City.Length > MaximumCityLength)
+            if (City != null && City.Length > MaximumCityLength)
             {
                 yield return new ValidationResult($"City name cannot exceed {MaximumCityLength} characters.",
                                    new[] { nameof(City) });
             }
-            else if (Street !=null && Street.Length > MaximumStreetLength)
+            if (Street !=null && Street.Length > MaximumStreetLength)
             {
                 yield return new ValidationResult($"Street name cannot exceed {MaximumStreetLength} characters.",
                                    new[] { nameof(Street) });
             }
-            else if (StreetNumber != null && StreetNumber.Length > MaximumStreetNumberLength)
+            if (StreetNumber != null && StreetNumber.Length > MaximumStreetNumberLength)
             {
                 yield return new ValidationResult($"Street number cannot exceed {MaximumStreetNumberLength} characters.",
                                    new[] { nameof(StreetNumber) });

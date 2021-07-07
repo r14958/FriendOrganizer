@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -19,21 +18,14 @@ namespace FriendOrganizer.UI.Wrapper
         private const int MinimumLastNameLength = 2;
         private const int MaximumLastNameLength = 50;
 
-        private readonly IValidator<FriendPhoneNumber> phoneValidator;
-        private readonly IValidator<Address> addressValidator;
 
         /// <summary>
         /// Wraps the Model <see cref="Friend"/> and adds data validation.
         /// </summary>
         /// <param name="model">The Friend instance to be wrapped.</param>
         /// <param name="friendValidator">Optional FluentValidation <see cref="IValidator{T}"/> where T is <see cref="Friend"/>.</param>
-        public FriendWrapper(Friend model, 
-            IValidator<Friend> friendValidator = null,
-            IValidator<FriendPhoneNumber> phoneValidator = null,
-            IValidator<Address> addressValidator = null) : base(model)
+        public FriendWrapper(Friend model) : base(model)
         {
-            this.phoneValidator = phoneValidator;
-            this.addressValidator = addressValidator;
             InitializeComplexProperties(model);
             InitializeCollectionProperties(model);
         }
@@ -69,7 +61,7 @@ namespace FriendOrganizer.UI.Wrapper
             }
             
             // Wrap all complex model properties in their own model wrappers.
-            Address = new AddressWrapper(model.Address, addressValidator);
+            Address = new AddressWrapper(model.Address);
 
             // Register all complex wrappers to enable property changes to bubble up.
             RegisterComplex<Address>(Address);

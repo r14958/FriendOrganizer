@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Services;
@@ -22,7 +21,6 @@ namespace FriendOrganizer.UI.ViewModel
 
         public ProgrammingLanguageDetailViewModel(IEventAggregator eventAggregator,
             IProgrammingLanguageRepository programmingLanguageRepository,
-            IValidator<ProgrammingLanguage> languageValidator,
             IMessageDialogService messageDialogService) 
             : base(eventAggregator, messageDialogService)
         {

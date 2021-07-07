@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using FriendOrganizer.UI.ViewModel;
+﻿using FriendOrganizer.UI.ViewModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -60,71 +58,29 @@ namespace FriendOrganizer.UI.Wrapper
             base.OnPropertyChanged(nameof(HasErrors));
         }
 
-
-        /// <summary>
-        /// Loads validation errors from a collection of <see cref="DataAnnotations.ValidationResult"/> to the <see cref="Errors"/> error dictionary.
-        /// </summary>
-        /// <param name="propertyName"></param>
-        /// <param name="validationResults"></param>
-        protected void LoadErrors(string propertyName, ICollection<DataAnnotations.ValidationResult> validationResults)
-        {
-            foreach (var result in validationResults)
-            {
-                ValidationFailure error = new(propertyName, result.ErrorMessage);
-
-                AddError(error);
-            }
-        }
-
-        
-        /// <summary>
-        /// Loads errors from the <see cref="ValidationResult"/> to the <see cref="Errors"/> error dictionary.
-        /// </summary>
-        /// <param name="validationResult"></param>
-        protected void LoadErrors(ValidationResult validationResult)
-        {
-            // If there are validation errors...
-            if (validationResult != null)
-            {
-                // Attempt to add them to the error dictionary.
-                AddErrors(validationResult);
-            }
-
-        }
-
-        /// <summary>
-        /// Cycles through all validation errors and adds them to the <see cref="Errors"/> error dictionary.
-        /// </summary>
-        /// <param name="validationResult"></param>
-        private void AddErrors(ValidationResult validationResult)
-        {
-            foreach (var error in validationResult.Errors)
-            {
-                AddError(error);
-            }
-        }
-
         /// <summary>
         /// Adds a single error message to the <see cref="Errors"/> dictionary.
         /// </summary>
         /// <param name="error"> The validation error object.</param>
-        private void AddError(ValidationFailure error)
+        private void AddError(DataAnnotations.ValidationResult error)
         {
-            string propertyName = error.PropertyName;
 
-            // If the property is not found in the error dictionary...
-            if (!Errors.ContainsKey(propertyName))
+            foreach (var propertyName in error.MemberNames.ToList())
             {
-                // Add it with a blank list of error messages.
-                Errors[propertyName] = new List<string>();
+                // If the property is not found in the error dictionary...
+                if (!Errors.ContainsKey(propertyName))
+                {
+                    // Add it with a blank list of error messages.
+                    Errors[propertyName] = new List<string>();
 
-            }
-            // If the error message is not in the list for that property...
-            if (!Errors[propertyName].Contains(error.ErrorMessage))
-            {
-                // Add it.
-                Errors[propertyName].Add(error.ErrorMessage);
-                OnErrorsChanged(propertyName);
+                }
+                // If the error message is not in the list for that property...
+                if (!Errors[propertyName].Contains(error.ErrorMessage))
+                {
+                    // Add it.
+                    Errors[propertyName].Add(error.ErrorMessage);
+                    OnErrorsChanged(propertyName);
+                } 
             }
         }
 

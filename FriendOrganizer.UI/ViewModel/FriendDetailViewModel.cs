@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Commands;
 using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Data.Repositories;

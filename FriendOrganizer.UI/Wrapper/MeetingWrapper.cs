@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,21 +13,10 @@ namespace FriendOrganizer.UI.Wrapper
         private const int MinimumTitleLength = 2;
         private const int MaximumTitleLength = 50;
 
-        private readonly IValidator<Friend> friendValidator;
-
-        public MeetingWrapper(Meeting model, 
-            IValidator<Meeting> meetingValidator = null,
-            IValidator<Friend> friendValidator = null) : base(model)
+        public MeetingWrapper(Meeting model) : base(model)
         {
             InitializeCollectionProperties(model);
-            //InitializeComplexProperties(model);
-            this.friendValidator = friendValidator;
         }
-
-        //private void InitializeComplexProperties(Meeting model)
-        //{
-        //    DateFrom = new DateFromWrapper((DateTimeOffset)(model.DateFrom));
-        //}
 
         public int Id { get { return Model.Id; } }
 
@@ -104,7 +92,7 @@ namespace FriendOrganizer.UI.Wrapper
                 throw new ArgumentException("Added Friends cannot be null.");
             }
             AddedFriends = new ChangeTrackingCollection<FriendWrapper>(
-               model.Friends.Select(f => new FriendWrapper(f, friendValidator)));
+               model.Friends.Select(f => new FriendWrapper(f)));
             
 
             // Using a method in the base class, register the two model and wrapper collections to keep them in sync.
@@ -118,12 +106,12 @@ namespace FriendOrganizer.UI.Wrapper
                 yield return new ValidationResult("Please specify a meeting title.",
                     new[] { nameof(Title) });
             }
-            else if (Title.Length < MinimumTitleLength)
+            if (Title.Length < MinimumTitleLength)
             {
                 yield return new ValidationResult($"City name must be at least {MinimumTitleLength} characters.",
                     new[] { nameof(Title) });
             }
-            else if (Title.Length > MaximumTitleLength)
+            if (Title.Length > MaximumTitleLength)
             {
                 yield return new ValidationResult($"City name cannot exceed {MaximumTitleLength} characters.",
                                    new[] { nameof(Title) });

@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
-using FriendOrganizer.UI.Commands;
+﻿using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Data.Lookups;
 using FriendOrganizer.UI.Data.Repositories;
 using FriendOrganizer.UI.Event;
@@ -8,7 +6,6 @@ using FriendOrganizer.UI.Services;
 using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;

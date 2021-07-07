@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using DataAnnotations = System.ComponentModel.DataAnnotations;
+﻿using DataAnnotations = System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System;

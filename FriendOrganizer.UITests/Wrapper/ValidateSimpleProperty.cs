@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FriendOrganizer.Domain.Models;
+﻿using FriendOrganizer.Domain.Models;
 using FriendOrganizer.UI.Wrapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -29,8 +28,7 @@ namespace FriendOrganizer.UITests.Wrapper
         [TestMethod]
         public void ShouldReturnValidationErrorIfFirstNameIsEmptyUsingDataAnnotations()
         {
-            // Do not pass in a FluentValidation validator, so relying only on data annotations
-            // in the wrapper.
+            
             var wrapper = new FriendWrapper(friend);
             Assert.IsFalse(wrapper.HasErrors);
 
@@ -41,8 +39,8 @@ namespace FriendOrganizer.UITests.Wrapper
             Assert.AreEqual(2, errors.Count());
             Assert.AreEqual("Please specify a first name.", errors.First());
 
-            errors = wrapper.GetErrors(nameof(wrapper.FirstName)).Cast<string>();
             wrapper.FirstName = "J";
+            errors = wrapper.GetErrors(nameof(wrapper.FirstName)).Cast<string>();
             Assert.AreEqual(1, errors.Count());
         }
 
