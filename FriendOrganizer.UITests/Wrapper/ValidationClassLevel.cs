@@ -92,5 +92,14 @@ namespace FriendOrganizer.UITests.Wrapper
             var isDeveloperErrors = wrapper.GetErrors(nameof(wrapper.IsDeveloper))?.Cast<string>().ToList() ?? new List<string>();
             Assert.AreEqual(0, isDeveloperErrors.Count);
         }
+
+        [TestMethod]
+        public void ShouldInitailizeWithoutProblems()
+        {
+            friend.IsDeveloper = true;
+            friend.FavoriteLanguageId = 1;
+            var wrapper = new FriendWrapper(friend);
+            Assert.IsTrue(wrapper.IsValid);
+        }
     }
 }

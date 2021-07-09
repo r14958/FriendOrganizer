@@ -26,8 +26,7 @@ namespace FriendOrganizer.UI.Wrapper
         /// <param name="friendValidator">Optional FluentValidation <see cref="IValidator{T}"/> where T is <see cref="Friend"/>.</param>
         public FriendWrapper(Friend model) : base(model)
         {
-            InitializeComplexProperties(model);
-            InitializeCollectionProperties(model);
+            
         }
 
         /// <summary>
@@ -35,7 +34,7 @@ namespace FriendOrganizer.UI.Wrapper
         /// wrapper and model collections to keep them sync and bubble up change notifications.
         /// </summary>
         /// <param name="model">The model that contains the collection properties.</param>
-        private void InitializeCollectionProperties(Friend model)
+        protected override void InitializeCollectionProperties(Friend model)
         {
             if (model.PhoneNumbers == null )
             {
@@ -53,7 +52,7 @@ namespace FriendOrganizer.UI.Wrapper
         /// the "complex" wrapper to bubble up change notifications.
         /// </summary>
         /// <param name="model">The model that contains the collection properties.</param>
-        private void InitializeComplexProperties(Friend model)
+        protected override void InitializeComplexProperties(Friend model)
         {
             if (model.Address == null)
             {

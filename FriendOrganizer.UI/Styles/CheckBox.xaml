@@ -7,6 +7,8 @@
         <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Control.Border}"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <!--CheckBoxes are too small to use the default ErrorTemplate, so their error "adorner" must float above, instead of within.-->
+        <!--<Setter Property="Validation.ErrorTemplate" Value="{StaticResource AdornerAboveErrorTemplate}"/>-->
 
         <Setter Property="Template">
             <Setter.Value>

@@ -40,9 +40,23 @@ namespace FriendOrganizer.UI.Wrapper
 
             originalValues = new();
             trackingObjects = new();
+
+            // Need to makes sure complex and collection properties are initialized in the subclasses before
+            // they are validated here, so call them here as virtual methods..
+            InitializeComplexProperties(model);
+            InitializeCollectionProperties(model);
+
             ValidateErrors();
         }
-        
+
+        protected virtual void InitializeCollectionProperties(T model)
+        {
+        }
+
+        protected virtual void InitializeComplexProperties(T model)
+        {
+        }
+
         /// <summary>
         /// Gets the instance of class T being wrapped
         /// </summary>

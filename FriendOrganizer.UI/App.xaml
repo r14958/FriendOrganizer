@@ -20,8 +20,9 @@
                 <!-- Theme setting-->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Teal.xaml" />
                 
-                <!-- Other styles: Order is important! Any styles referenced in other styles must come first.-->
+                <!-- Other styles: Order is important! Any styles referenced in other styles must come first!-->
                 <ResourceDictionary Source="Styles/Brushes.xaml"/>
+                <ResourceDictionary Source="Styles/ValidationErrorTemplates.xaml"/>
                 <ResourceDictionary Source="Styles/ControlBaseStyle.xaml"/>
                 <ResourceDictionary Source="Styles/Button.xaml"/>
                 <ResourceDictionary Source="Styles/CheckBox.xaml"/>

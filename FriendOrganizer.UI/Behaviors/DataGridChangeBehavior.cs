@@ -6,60 +6,39 @@ using System.Windows.Data;
 
 namespace FriendOrganizer.UI.Behaviors
 {
-    public static class DataGridChangeBehavior
+    public class DataGridChangeBehavior : ChangeBehavior
     {
-
-        /// <summary>
-        /// Gets the attached <see cref="IsActiveProperty"/> of the <see cref="DataGrid"/> <see cref="DependencyObject"/>.
-        /// </summary>
-        /// <param name="obj">The <see cref="DependencyObject"/>, expected to be a <see cref="DataGrid"/>.</param>
-        /// <returns>True or False.</returns>
-        public static bool GetIsActive(DependencyObject obj)
+        
+        private new static void OnErrorAdornerPositionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            return (bool)obj.GetValue(IsActiveProperty);
+            if (d is DataGrid dataGrid  && GetIsActive(dataGrid))
+            {
+                DataGrid_Loaded(dataGrid, new RoutedEventArgs());
+            }
         }
-
-        /// <summary>
-        /// Sets the attached <see cref="IsActiveProperty"/> of the <see cref="DataGrid"/> <see cref="DependencyObject"/>
-        /// </summary>
-        /// <param name="obj">The <see cref="DependencyObject"/>, expected to be a <see cref="DataGrid"/>.</param>
-        public static void SetIsActive(DependencyObject obj, bool value)
-        {
-            obj.SetValue(IsActiveProperty, value);
-        }
-
-        /// <summary>
-        /// Identifies the attached property <see cref="IsActiveProperty"/> for the <see cref="DataGrid"/> <see cref="DependencyObject"/>.
-        /// </summary>
-        public static readonly DependencyProperty IsActiveProperty =
-            DependencyProperty.RegisterAttached("IsActive", 
-                typeof(bool), 
-                typeof(DataGridChangeBehavior), 
-                new PropertyMetadata(false, OnIsActivePropertyChanged));
 
         /// <summary>
         /// Callback for the <see cref="IsActiveProperty"/> change event of the <see cref="DataGrid"/> <see cref="DependencyObject"/>.
         /// </summary>
         /// <param name="d"><see cref="DependencyObject"/>, expected to be a <see cref="DataGrid"/></param>
         /// <param name="e"></param>
-        private static void OnIsActivePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private new static void OnIsActivePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var dataGrid = d as DataGrid;
-
-            // If a DataGrid object was not passed in, do nothing...
-            if (dataGrid == null) return;
-            
-            // If value changed to True...
-            if ((bool)e.NewValue)
-            {
-                // Set the event handler.
-                dataGrid.Loaded += DataGrid_Loaded;
-            }
-            // If value changed to False...
-            else
-            {
-                // Remove the event handler.
-                dataGrid.Loaded -= DataGrid_Loaded;
+            // Only if a DataGrid object was passed in...
+            if (d is DataGrid dataGrid)
+            { 
+                // If value changed to True...
+                if ((bool)e.NewValue)
+                {
+                    // Set the event handler.
+                    dataGrid.Loaded += DataGrid_Loaded;
+                }
+                // If value changed to False...
+                else
+                {
+                    // Remove the event handler.
+                    dataGrid.Loaded -= DataGrid_Loaded;
+                }
             }
         }
 
@@ -104,7 +83,7 @@ namespace FriendOrganizer.UI.Behaviors
             var style = new Style(typeof(TextBlock), baseStyle);
 
             // Add style setters for for the non-Editing form of the DataGrid text column (TextBlock).
-            AddSetters(style, bindingPath);
+            AddSetters(style, bindingPath, dataGrid);
             
             // Return the style so it can be set.
             return style;
@@ -123,7 +102,7 @@ namespace FriendOrganizer.UI.Behaviors
         {
             var baseStyle = dataGrid.FindResource(typeof(TextBox)) as Style;
             var style = new Style(typeof(TextBox), baseStyle);
-            AddSetters(style, bindingPath);
+            AddSetters(style, bindingPath, dataGrid);
             return style;
         }
 
@@ -140,13 +119,16 @@ namespace FriendOrganizer.UI.Behaviors
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        private static void AddSetters(Style style, string bindingPath)
+        private static void AddSetters(Style style, string bindingPath, DataGrid dataGrid)
         {
             style.Setters.Add(new Setter(ChangeBehavior.IsActiveProperty, false));
             style.Setters.Add(new Setter(ChangeBehavior.IsChangedProperty, 
                 new Binding(bindingPath + "IsChanged")));
             style.Setters.Add(new Setter(ChangeBehavior.OriginalValueProperty,
                 new Binding(bindingPath + "OriginalValue")));
+
+            
+            UpdateStyleWithValidationErrorTemplate(dataGrid, ref style);
         }
     }
 }

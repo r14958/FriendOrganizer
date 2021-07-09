@@ -85,7 +85,7 @@ namespace FriendOrganizer.UI.Wrapper
 
         public ChangeTrackingCollection<FriendWrapper> AddedFriends { get; private set; }
 
-        private void InitializeCollectionProperties(Meeting model)
+        protected override void InitializeCollectionProperties(Meeting model)
         {
             if (model.Friends == null)
             {

@@ -4,24 +4,7 @@
                     x:Class="FriendOrganizer.UI.Styles.ControlBaseStyle">
     <!--Since "Control" is not an implicit TargetType, must give this style a key.-->
     <Style TargetType="Control" x:Key="ControlBaseStyle">
-        <Setter Property="Validation.ErrorTemplate" >
-            <Setter.Value>
-                <ControlTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <AdornedElementPlaceholder x:Name="Placeholder"/>
-                        <!--This is a placeholder for the TextBox-->
-                        <!--Because we are in a horizontal StackPanel, this element will appear to the right of the TextBox-->
-                        <Border Background="Red" Margin="-23,3,3,3" CornerRadius="10" Width="20" Height="20"
-                                ToolTip="{Binding ElementName=Placeholder,
-                                            Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
-                                ToolTipService.InitialShowDelay="0">
-                            <TextBlock Text="!" Foreground="White"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </StackPanel>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource DefaultErrorTemplate}"/>
         <Setter Property="behaviors:ChangeBehavior.IsActive" Value="True"/>
         <Style.Triggers>
             <Trigger Property="behaviors:ChangeBehavior.IsChanged" Value="True">
@@ -32,8 +15,6 @@
             </Trigger>
             <Trigger Property="Validation.HasError" Value="True">
                 <Setter Property="Background" Value="{StaticResource HasErrorBackgroundBrish}"/>
-                <!--<Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                    Path=(Validation.Errors)[0].ErrorContent}"/>-->
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -42,6 +23,7 @@
     create a separate base style for them.-->
     <Style TargetType="TextBlock" x:Key="TextBlockBaseStyle">
         <Setter Property="Foreground" Value="{StaticResource MahApps.Brushes.ThemeForeground}"/>
+        <!--<Setter Property="Validation.ErrorTemplate" Value="{StaticResource DefaultErrorTemplate}"/>-->
         <Setter Property="behaviors:ChangeBehavior.IsActive" Value="True"/>
         <Style.Triggers>
             <Trigger Property="behaviors:ChangeBehavior.IsChanged" Value="True">
@@ -49,6 +31,9 @@
                 <Setter Property="ToolTip" 
                         Value="{Binding RelativeSource={RelativeSource Self}, 
                                 Path=(behaviors:ChangeBehavior.OriginalValue)}"/>
+            </Trigger>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="Background" Value="{StaticResource HasErrorBackgroundBrish}"/>
             </Trigger>
         </Style.Triggers>
     </Style>

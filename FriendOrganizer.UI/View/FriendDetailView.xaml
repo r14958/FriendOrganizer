@@ -90,6 +90,7 @@
                 <Viewbox Height="{Binding Path=ActualHeight, ElementName=StackPanel1}">
                 <CheckBox Grid.Column="0" Margin="10 0 0 10"
                           x:Name="IsDeveloperCheckBox"
+                          behaviors:ChangeBehavior.ErrorAdornerPosition="Above"
                           IsChecked="{Binding Friend.IsDeveloper, Mode=TwoWay}"/>   
                 </Viewbox>
             </StackPanel>
@@ -127,6 +128,7 @@
             <!--A DataGrid will get the remaining space in the DockPanel.-->
             <DataGrid x:Name="phoneNumberGrid"
                     ItemsSource="{Binding Friend.PhoneNumbers}"
+                    behaviors:DataGridChangeBehavior.ErrorAdornerPosition="InsideRight"  
                     SelectedItem="{Binding SelectedPhoneNumber, Mode=TwoWay}"
                     AutoGenerateColumns="False" RowHeaderWidth="0"
                     behaviors:DataGridChangeBehavior.IsActive="True">

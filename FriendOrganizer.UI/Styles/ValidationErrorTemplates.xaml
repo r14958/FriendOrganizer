@@ -1,0 +1,130 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <ControlTemplate x:Key="DefaultErrorTemplate">
+        <Grid>
+            <!--This is a placeholder for the Control-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+            <!--Because we are in a Grid, the "adorner" element will be overlaid on top of the control-->
+            <Border Background="Red" Margin="3" 
+                    CornerRadius="10" Width="20" Height="20"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    ToolTip="{Binding ElementName=Placeholder,
+                                Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                    ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerWithinLeftErrorTemplate">
+        <Grid>
+            <!--This is a placeholder for the Control-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+            <!--Because we are in a Grid, the "adorner" element will be overlaid on top of the control-->
+            <Border Background="Red" Margin="3" 
+                    CornerRadius="10" Width="20" Height="20"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    ToolTip="{Binding ElementName=Placeholder,
+                                Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                    ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerWithinCenterErrorTemplate">
+        <Grid>
+            <!--This is a placeholder for the Control-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+            <!--Because we are in a Grid, the "adorner" element will be overlaid on top of the control-->
+            <Border Background="Red" Margin="3" 
+                    CornerRadius="10" Width="20" Height="20"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    ToolTip="{Binding ElementName=Placeholder,
+                                Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                    ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerAboveErrorTemplate">
+        <StackPanel Orientation="Vertical">
+            <!--Because we are in a vertical StackPanel, this element will appear to above the CheckBox.-->
+            <Border Background="Red" Margin="3" 
+                    CornerRadius="10" Width="20" Height="20"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Left"
+                    ToolTip="{Binding ElementName=Placeholder,
+                                Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                    ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+            <!--This is a placeholder for the Checkbox-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+        </StackPanel>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerBelowErrorTemplate">
+        <StackPanel Orientation="Vertical">
+            <!--This is a placeholder for the Checkbox-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+            <!--Because we are in a vertical StackPanel, this element will appear to below the CheckBox.-->
+            <Border Background="Red" Margin="3" 
+                    CornerRadius="10" 
+                    Width="20" Height="20"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    ToolTip="{Binding ElementName=Placeholder,
+                                Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                    ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"/>
+            </Border>
+        </StackPanel>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerRightErrorTemplate">
+        <StackPanel Orientation="Horizontal">
+            <!--This is a placeholder for the control-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+            <!--Because we are in a horizontal StackPanel, this element will appear to the right of the control.-->
+            <Border Background="Red" Margin="3" CornerRadius="10" Width="20" Height="20"
+                                ToolTip="{Binding ElementName=Placeholder,
+                                            Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                                ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </StackPanel>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AdornerLeftErrorTemplate">
+        <StackPanel Orientation="Horizontal">
+            <!--Because we are in a horizontal StackPanel, this adorner will appear to the right of the control.-->
+            <Border Background="Red" Margin="3" CornerRadius="10" Width="20" Height="20"
+                                ToolTip="{Binding ElementName=Placeholder,
+                                            Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"
+                                ToolTipService.InitialShowDelay="0">
+                <TextBlock Text="!" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <!--This is a placeholder for the control-->
+            <AdornedElementPlaceholder x:Name="Placeholder"/>
+        </StackPanel>
+    </ControlTemplate>
+
+</ResourceDictionary>

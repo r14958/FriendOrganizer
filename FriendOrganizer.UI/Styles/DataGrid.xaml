@@ -3,23 +3,12 @@
                     xmlns:behaviors="clr-namespace:FriendOrganizer.UI.Behaviors">
 
     <Style x:Key="DataGridColumnStyle" TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}">
-        <Style.Triggers>
-            <Trigger Property="Validation.HasError" Value="True">
-                <Setter Property="Background" Value="DarkRed" />
-                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                                Path=(Validation.Errors)[0].ErrorContent}" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource DefaultErrorTemplate}"/>
     </Style>
 
     <Style x:Key="DataGridEditingColumnStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Style.Triggers>
-            <Trigger Property="Validation.HasError" Value="True">
-                <Setter Property="Background" Value="DarkRed" />
-                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                                Path=(Validation.Errors)[0].ErrorContent}" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource DefaultErrorTemplate}"/>
     </Style>
+
 
 </ResourceDictionary>

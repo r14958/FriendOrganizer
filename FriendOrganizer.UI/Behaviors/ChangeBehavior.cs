@@ -17,10 +17,20 @@ namespace FriendOrganizer.UI.Behaviors
     /// Also, <see cref="TextBlock"/> is not on the lits, because it is not of type <see cref="Control"/> and
     /// its style is defined separately in <see cref="FriendOrganizer.UI.Styles.ControlBaseStyle.xaml"/>.
     /// </summary>
-    public static class ChangeBehavior
+    public class ChangeBehavior
     {
         // Dictionary to store types (key) and their associated dependency properties to assign custom behaviors.
         private static readonly Dictionary<Type, DependencyProperty> defaultProperties;
+        public enum ErrorAdornerPositions
+        {
+            InsideRight,
+            InsideLeft,
+            InsideCenter,
+            Above,
+            Below,
+            ToLeft,
+            ToRight
+        }
 
         static ChangeBehavior()
         {
@@ -153,6 +163,23 @@ namespace FriendOrganizer.UI.Behaviors
                 typeof(ChangeBehavior), 
                 new PropertyMetadata(null, OnOriginalValueConverterPropertyChanged));
 
+        public static ErrorAdornerPositions GetErrorAdornerPosition(DependencyObject obj)
+        {
+            return (ErrorAdornerPositions)obj.GetValue(ErrorAdornerPositionProperty);
+        }
+
+        public static void SetErrorAdornerPosition(DependencyObject obj, ErrorAdornerPositions value)
+        {
+            obj.SetValue(ErrorAdornerPositionProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for ErrorAdornerPosition.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ErrorAdornerPositionProperty =
+            DependencyProperty.RegisterAttached("ErrorAdornerPosition",
+                typeof(ErrorAdornerPositions),
+                typeof(DataGridChangeBehavior),
+                new PropertyMetadata(ErrorAdornerPositions.InsideRight, OnErrorAdornerPositionChanged));
+
         /// <summary>
         /// Event handler for the <see cref="IsActiveProperty"/> changed event.
         /// Creates or deletes bindings for the attached properties <see cref="IsChangedProperty"/> and <see cref="OriginalValueProperty"/>,
@@ -160,7 +187,7 @@ namespace FriendOrganizer.UI.Behaviors
         /// </summary>
         /// <param name="d">The <see cref="Control"/> whose <see cref="IsActiveProperty"/> is being set.</param>
         /// <param name="e">Change event args for the <see cref="IsActiveProperty"/>. </param>
-        private static void OnIsActivePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        protected static void OnIsActivePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             // Get the type of the dep. obj. (TextBox, ComboBox, etc.)
             Type type = d.GetType();
@@ -196,6 +223,9 @@ namespace FriendOrganizer.UI.Behaviors
                         // For the original value property, a value converter may be 
                         // needed to store this property in the correct format.
                         CreateOriginalValueBinding(d, bindingPath + "OriginalValue");
+                        
+                        
+                        SetValidationErrorTemplate(d);
                     }
                 }
                 else // IsActive is false, clear the bindings for the attached properties...
@@ -204,6 +234,51 @@ namespace FriendOrganizer.UI.Behaviors
                     BindingOperations.ClearBinding(d, OriginalValueProperty);
                 }
             }
+        }
+
+        private static void SetValidationErrorTemplate(DependencyObject d)
+        {
+
+            // Do nothing if the provided dp is not a Framework Element.
+            if (d is not FrameworkElement element) return;
+            
+            Type type = d.GetType();
+                
+            // Since element's Style property is immutable, a copy must be made.
+            var baseStyle = element.FindResource(type) as Style;
+            var style = new Style(type, baseStyle);
+
+            // Copy any existing setters
+            foreach (var setter in baseStyle.Setters)
+            {
+                style.Setters.Add(setter);
+            }
+
+            // Add the Validation Error Template to Style.
+            UpdateStyleWithValidationErrorTemplate(element, ref style);
+
+            // Replace element's style with the new style.
+            element.Style = style; 
+
+        }
+
+        /// <summary>
+        /// Uses the attached property <see cref="GetErrorAdornerPosition"/> to select the proper <see cref="Validation.ErrorTemplateProperty"/>
+        /// and add it to inputted <see cref="Style"/>.
+        /// </summary>
+        /// <param name="element">The <see cref="DependencyObject"/> that provides the base style to receive the <see cref="Validation.ErrorTemplateProperty"/>.</param>
+        /// <param name="style">The incoming style to receive the <see cref="Validation.ErrorTemplateProperty"/>.</param>
+        /// <exception cref="ResourceReferenceKeyNotFoundException"></exception>
+        protected static void UpdateStyleWithValidationErrorTemplate(FrameworkElement element, ref Style style)
+        {
+            // Use the attached property to get the proper resourceKey for the ErrorTemplate.
+            string resourceKey = GetErrorTemplateResourceKey(GetErrorAdornerPosition(element));
+            
+            // Use the resourceKey at its target element to find the ErrorTemplate.
+            var resource = element.FindResource(resourceKey);
+
+            // Modify the inputted style by adding the requested validation error template.
+            style.Setters.Add(new Setter(Validation.ErrorTemplateProperty, resource));
         }
 
         /// <summary>
@@ -249,5 +324,35 @@ namespace FriendOrganizer.UI.Behaviors
             // Set the new binding on the OriginalValueProperty of the framework element.
             BindingOperations.SetBinding(d, OriginalValueProperty, newBinding);
         }
+
+
+        protected static void OnErrorAdornerPositionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            SetValidationErrorTemplate(d);
+        }
+
+        protected static string GetErrorTemplateResourceKey(ErrorAdornerPositions position)
+        {
+            switch (position)
+            {
+                case ErrorAdornerPositions.InsideRight:
+                    return "DefaultErrorTemplate";
+                case ErrorAdornerPositions.InsideLeft:
+                    return "AdornerWithinLeftErrorTemplate";
+                case ErrorAdornerPositions.InsideCenter:
+                    return "AdornerWithinCenterErrorTemplate";
+                case ErrorAdornerPositions.Above:
+                    return "AdornerAboveErrorTemplate";
+                case ErrorAdornerPositions.Below:
+                    return "AdornerBelowErrorTemplate";
+                case ErrorAdornerPositions.ToLeft:
+                    return "AdornerLeftErrorTemplate";
+                case ErrorAdornerPositions.ToRight:
+                    return "AdornerRightErrorTemplate";
+                default:
+                    return "DefaultErrorTemplate";
+            }
+        }
+
     }
 }
